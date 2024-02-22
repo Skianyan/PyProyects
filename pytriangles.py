@@ -1,3 +1,6 @@
+import math
+from math import floor
+
 from PIL import Image, ImageDraw
 
 # A Point.
@@ -20,21 +23,21 @@ def interpolate (i0,f0,i1,f1):
         return [f0]
     values = []
     a = (f1-f0)/(i1-i0)
-    d = f0
-    for i in range(i0, i1):
-        values.append(d)
-        d = d + a
+    f = f0
+    for i in range(i0, i1 + 1):
+        values.append(f)
+        f = f + a
     return values
 
 def drawTriangle(p0, p1, p2, fill, edge, canvas):
     # Define correctamente los puntos
-    if p0.x < p1.x:
+    if p1.y < p0.y:
         p0, p1 = p1, p0
         #x0, y0, x1, y1 = x1, y1, x0, y1
-    if p0.x < p2.x:
+    if p2.y < p0.y:
         p0, p2 = p2, p0
         #x0, y0, x2, y2 = x2, y2, x0, y0
-    if p1.x < p2.x:
+    if p2.y < p1.y:
         p1, p2 = p2, p1
         #x1, y1, x2, y2 = x2, y2, x1, y1
 
@@ -51,27 +54,34 @@ def drawTriangle(p0, p1, p2, fill, edge, canvas):
     drawLine(p1, p2, edge, canvas)
     drawLine(p2, p0, edge, canvas)
 
-    print("2-1 coords =",x2, y2, x1, y1)
-    y1s = interpolate(x2, y2, x1, y1)
-    print('y2-1 s =', y1s)
+    x01 = interpolate(y0, x0, y1, x1)
+    x02 = interpolate(y0, x0, y2, x2)
+    x12 = interpolate(y1, x1, y2, x2)
 
-    print("1-0 coords =", x1, y1, x0, y0)
-    y2s = interpolate(x1, y1, x0, y0)
-    print('y1-0 s =', y2s)
+    print('x01 =', x01)
+    print('x02 =', x02)
+    print('x12 =', x12)
 
-    print("2-0 coords =", x2, y2, x0, y0)
-    y3s = interpolate(x2, y2, x0, y0)
-    print('y2-0 s =', y3s)
+    x01.pop(-1)
+    x012 = x01 + x12
+    print('x012 =', x012)
+    print(x012.__len__())
+    print(x02.__len__())
 
-    y4s = y1s + y2s
-    print('y0-1-2s =', y4s)
+    m = math.floor(len(x012) / 2)
+    if x02[m] < x012[m]:
+        xleft = x02
+        xright = x012
+    else:
+        xleft = x012
+        xright = x02
 
+    for y in range(y0, y2 + 1):
+        a = round(xleft[y - y0])
+        b = round(xright[y - y0])
+        for x in range(a, b):
+            putPixel(x, y, fill, canvas)
 
-    # i in y4s:
-        #drawLine(y3s[i], y4s[i], fill, canvas)
-
-
-    return
 
 def drawLine(p0, p1, color, canvas):
     x0 = p0.x
@@ -105,9 +115,9 @@ height = 501
 canvas = Image.new('RGB', (width, height), (255, 255, 255))
 
 # Definir los puntos
-P1 = Pt(200, 90)
-P2 = Pt(-200, -50)
-P0 = Pt(50, -90)
+P0 = Pt(-200, -200)
+P1 = Pt(-50, 80)
+P2 = Pt(170, 170)
 
 # Definir los colores
 color = (0, 0, 0)
@@ -118,11 +128,11 @@ drawLine(P0, P1, color, canvas)
 drawLine(P1, P2, color, canvas)
 drawLine(P2, P0, color, canvas)
 
-canvas.show()
+
 
 drawTriangle(P0, P1, P2, fill, color, canvas)
 
-
+canvas.show()
 # # Definir Triangulo Manualmente
 # # Puntos iniciales
 # P0 = Pt(200, 90)
