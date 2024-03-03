@@ -1,16 +1,13 @@
-import math, numpy
+import math
+from PIL import Image, ImageDraw
 
-class Pth:
-    def __init__(self, x, y, h=1):
+# A Point.
+class Pt:
+    def __init__(self, x, y, h):
         self.x = x
         self.y = y
         self.h = h
 
-class Vertex:
-    def __init__(self, x, y, z):
-        self.x = x
-        self.y = y
-        self.z = z
 def putPixel(x, y, color, canvas):
     x = canvas.width / 2 + x
     y = canvas.height / 2 - y
@@ -29,42 +26,6 @@ def interpolate (i0,f0,i1,f1):
         values.append(f)
         f = f + a
     return values
-
-def drawLine(p0, p1, color, canvas):
-    x0 = p0.x
-    y0 = p0.y
-    x1 = p1.x
-    y1 = p1.y
-
-    if abs(x1 - x0) > abs(y1 - y0):
-        # Es una linea horizontal
-        if x0 > x1:
-            x0, x1, y0, y1 = x1, x0, y1, y0
-        ys = interpolate(x0, y0, x1, y1)
-        for x in range(x0, x1):
-            putPixel(int(x), int(ys[x-x0]), color, canvas)
-    else:
-        # Es una linea vertical
-        if y0 > y1:
-            x0, x1, y0, y1 = x1, x0, y1, y0
-
-        xs = interpolate(y0, x0, y1, x1)
-
-        for y in range(y0, y1):
-            putPixel(int(xs[y-y0]), int(y), color, canvas);
-
-def calcular_centroide(puntos):
-    n = len(puntos)
-
-    sum_x = sum(point.x for point in puntos)
-    sum_y = sum(point.y for point in puntos)
-    sum_h = sum(point.h for point in puntos)
-
-    centroide_x = int(sum_x / n)
-    centroide_y = int(sum_y / n)
-    centroide_h = sum_h / n
-    cent = Pth(centroide_x, centroide_y, centroide_h)
-    return cent
 
 def drawPointTriangle(p0, p1, p2, fill, edge, canvas):
     # Define correctamente los puntos
@@ -190,6 +151,23 @@ def drawShadedTriangle(p0, p1, p2, fill, edge, canvas):
             shadedColor = (shadedColor0, shadedColor1, shadedColor2)
             putPixel(x, y, shadedColor, canvas)
 
+def drawShadedPolygon(points, fill, edge, canvas):
+    p_cent = calcular_centroide(points)
+    #print("centroide (x,y):", p_cent.x, p_cent.y, p_cent.h)
+    n = len(points)
+    #print("Cuantos puntos:", n)
+
+    for current_point, next_point in zip(points, points[1:]):
+        #print("cp", current_point.x, current_point.y, current_point.h)
+        drawShadedTriangle(current_point, next_point, p_cent, fill, edge, canvas)
+        drawLine(current_point, next_point, edge, canvas)
+
+    if next_point == points[n - 1]:
+        #print("cp", current_point.x, current_point.y, current_point.h)
+        drawShadedTriangle(points[0], next_point, p_cent, fill, edge, canvas)
+        drawLine(points[0], next_point, edge, canvas)
+    return
+
 def drawPolygon(points, fill, edge, canvas):
     cent = calcular_centroide(points)
     #print("centroide (x,y):", cent.x, cent.y)
@@ -209,32 +187,45 @@ def drawPolygon(points, fill, edge, canvas):
     drawPointTriangle(points[0],points[1], cent, fill, edge, canvas)
     return
 
-def drawShadedPolygon(points, fill, edge, canvas):
-    p_cent = calcular_centroide(points)
-    #print("centroide (x,y):", p_cent.x, p_cent.y, p_cent.h)
-    n = len(points)
-    #print("Cuantos puntos:", n)
+def calcular_centroide(puntos):
+    n = len(puntos)
 
-    for current_point, next_point in zip(points, points[1:]):
-        #print("cp", current_point.x, current_point.y, current_point.h)
-        drawShadedTriangle(current_point, next_point, p_cent, fill, edge, canvas)
-        drawLine(current_point, next_point, edge, canvas)
+    sum_x = sum(point.x for point in puntos)
+    sum_y = sum(point.y for point in puntos)
+    sum_h = sum(point.h for point in puntos)
 
-    if next_point == points[n - 1]:
-        #print("cp", current_point.x, current_point.y, current_point.h)
-        drawShadedTriangle(points[0], next_point, p_cent, fill, edge, canvas)
-        drawLine(points[0], next_point, edge, canvas)
-    return
+    centroide_x = int(sum_x / n)
+    centroide_y = int(sum_y / n)
+    centroide_h = sum_h / n
+    cent = Pth(centroide_x, centroide_y, centroide_h)
+    return cent
 
-def proyectVertex(v,canvas):
-    projection_plane_z = 1
-    xp = v.x + projection_plane_z / v.z
-    yp = v.y + projection_plane_z / v.z
-    Pp = Pth(xp, yp)
-    return viewportToCanvas(Pp, canvas)
-def viewportToCanvas (P2d, canvas):
-    viewport_size = 1
-    return Pth(int(P2d.x * canvas.width / viewport_size) | 0, int(P2d.x * canvas.height / viewport_size) | 0)
+def drawLine(p0, p1, color, canvas):
+    x0 = p0.x
+    y0 = p0.y
+    x1 = p1.x
+    y1 = p1.y
+
+    if abs(x1 - x0) > abs(y1 - y0):
+        # Es una linea horizontal
+        if x0 > x1:
+            x0, x1, y0, y1 = x1, x0, y1, y0
+        ys = interpolate(x0, y0, x1, y1)
+        for x in range(x0, x1):
+            putPixel(int(x), int(ys[x-x0]), color, canvas)
+    else:
+        # Es una linea vertical
+        if y0 > y1:
+            x0, x1, y0, y1 = x1, x0, y1, y0
+
+        xs = interpolate(y0, x0, y1, x1)
+
+        for y in range(y0, y1):
+            putPixel(int(xs[y-y0]), int(y), color, canvas);
+
+#############################################################################
+
+# Helper Functions
 
 def getIntValue(value, min):
     try:
@@ -246,5 +237,3 @@ def getIntValue(value, min):
 
         exit()
     return value
-
-
