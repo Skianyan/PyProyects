@@ -1,33 +1,29 @@
-from PIL import Image, ImageDraw
+import tkinter as tk
+from tkinter import colorchooser
 
+def show_color_palette():
+    color = colorchooser.askcolor()[1]
+    return color
 
-def draw_line_between_points(image, point1, point2):
-    draw = ImageDraw.Draw(image)
-    draw.line((point1, point2), fill="black", width=2)
-    image.show()
+root = tk.Tk()
+root.title("Color Chooser Example")
 
+selected_color = None
+print(selected_color)
 
-def swap_coordinates(point):
-    return (point[1], point[0])
+def select_color():
+    global selected_color
+    selected_color = show_color_palette()
+    if selected_color:
+        color_label.config(bg=selected_color)
+    print(selected_color)
 
+color_label = tk.Label(root, text="Selected Color", bg="white", width=20, height=5)
+color_label.pack(pady=10)
 
-def plot_line(point1, point2):
-    # Si la pendiente es mayor a 45 grados, intercambiar las coordenadas x e y
-    if abs(point2[1] - point1[1]) > abs(point2[0] - point1[0]):
-        point1 = swap_coordinates(point1)
-        point2 = swap_coordinates(point2)
+select_color_button = tk.Button(root, text="Select Color", command=select_color)
+select_color_button.pack(pady=10)
 
-    # Crear una imagen
-    width = 500
-    height = 500
-    image = Image.new("RGB", (width, height), "white")
+root.mainloop()
 
-    # Dibujar la línea entre los puntos
-    draw_line_between_points(image, point1, point2)
-
-
-# Puntos de ejemplo
-point1 = (100, 0)
-point2 = (200, 300)
-
-plot_line(point1, point2)
+print("Selected color:", selected_color)
