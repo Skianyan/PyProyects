@@ -207,16 +207,17 @@ def getIntValue(value, min, max):
 
 
 def on_click(event):
-    if points.__len__() < 7:
-        x, y = event.x, event.y
-        #Place pixel (Placeholder)
-        putPixel(x, y, color)
-        #Add click position to points
-        points.append(Pt(x, y))
-        print("Clicked at:" + " X: " + str(x) + " Y: " + str(y))
-        generate_slider()
-    else:
-        print("max 7 points")
+    if color is not None:
+        if points.__len__() < 7:
+            x, y = event.x, event.y
+            #Place pixel (Placeholder)
+            putPixel(x, y, color)
+            #Add click position to points
+            points.append(Pt(x, y))
+            print("Clicked at:" + " X: " + str(x) + " Y: " + str(y))
+            generate_slider()
+        else:
+            print("max 7 points")
 
 
 def on_enter(event):
@@ -305,25 +306,20 @@ def get_slider_values():
 ##########################################
 # Get Canvas Size > 500
 
-# print("1.- Define canvas size.")
-#
-# # Get Canvas Width
-# width = getIntValue("width", 49, 501)
-#
-# # Get Canvas Height
-# height = getIntValue("height", 49, 501)
+print("1.- Define canvas size.")
 
-# set width for testing
+# Get Canvas Width
+width = getIntValue("width", 49, 501)
+
+# Get Canvas Height
+height = getIntValue("height", 49, 501)
 
 ##########################################
 # Parameters
 points = []
 sliders = []
 edge = "#000"
-funnycolor = ''
 color = None
-width = 500
-height = 500
 
 ##########################################
 # Tkinter root
