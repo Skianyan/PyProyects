@@ -11,10 +11,16 @@ class Pt:
 
 # A 3D vertex.
 class Vertex:
-	def __init__(self, x, y, z):
-		self.x = x
-		self.y = y
-		self.z = z
+    def __init__(self, x, y, z):
+        self.x = x
+        self.y = y
+        self.z = z
+
+
+class Triangle:
+	def __init__(self, indexes, color):
+		self.indexes = indexes
+		self.color = color
 
 # The putPixel() function.
 def putPixel(x, y, color, canvas):
@@ -166,12 +172,25 @@ def drawShadedTriangle (P0, P1, P2, color,canvas):
 
             putPixel(x,y,shaded_color,canvas)
 
+def calc_centroide(puntos):
+    n = len(puntos)
+
+    sum_x = sum(point.x for point in puntos)
+    sum_y = sum(point.y for point in puntos)
+
+    centroide_x = int(sum_x / n)
+    centroide_y = int(sum_y / n)
+
+    cent = Pt(centroide_x, centroide_y)
+    return cent
+
+
 def projectVertex(V, canvas):
     projection_plane_z = 1
     xp = V.x * projection_plane_z / V.z
     yp = V.y * projection_plane_z / V.z
-    Pp = Pt(xp, yp)
-    return viewportToCanvas(Pp, canvas)
+    pp = Pt(xp, yp)
+    return viewportToCanvas(pp, canvas)
 
 def viewportToCanvas(P2d, canvas):
     viewport_size = 1
@@ -185,9 +204,25 @@ def renderObject(vertices, triangles, canvas):
         renderTriangle(T, projected, canvas)
 
 
+
 def renderTriangle(triangle, projected, canvas):
-    drawFilledTriangle(projected[triangle[0]],
+    drawWireframeTriangle(projected[triangle[0]],
                           projected[triangle[1]],
                           projected[triangle[2]],
                           triangle[3], canvas)
 
+##########################################################
+# Dodecahedron....
+
+def pent_triangles(p, color):
+    cent = calc_centroide(p)
+    triangles = [[p[0], p[1], cent], [p[1], p[2], cent], [p[2], p[3], cent], [p[3], p[4], cent],
+                 [p[4], p[0], cent], color]
+    return triangles
+
+def pentagons_to_triangles(pentagons):
+    for p in pentagons:
+        cent = calc_centroide(p)
+        triangles = [(p[0], p[1], cent), (p[1], p[2], cent), (p[2], p[3], cent), (p[3], p[4], cent),
+                     (p[4], p[0], cent)]
+    return triangles
