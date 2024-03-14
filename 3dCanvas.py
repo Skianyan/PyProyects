@@ -56,21 +56,4 @@ gf.renderObject(vertices,triangles,canvas)
 
 # Trazar Caras
 
-
-
-# gf.drawLine(gf.projectVertex(vAf,canvas), gf.projectVertex(vBf,canvas), BLUE,canvas)
-# gf.drawLine(gf.projectVertex(vBf,canvas), gf.projectVertex(vCf,canvas), BLUE,canvas)
-# gf.drawLine(gf.projectVertex(vCf,canvas), gf.projectVertex(vDf,canvas), BLUE,canvas)
-# gf.drawLine(gf.projectVertex(vDf,canvas), gf.projectVertex(vAf,canvas), BLUE,canvas)
-#
-# gf.drawLine(gf.projectVertex(vAb,canvas), gf.projectVertex(vBb,canvas), RED, canvas)
-# gf.drawLine(gf.projectVertex(vBb,canvas), gf.projectVertex(vCb,canvas), RED, canvas)
-# gf.drawLine(gf.projectVertex(vCb,canvas), gf.projectVertex(vDb,canvas), RED, canvas)
-# gf.drawLine(gf.projectVertex(vDb,canvas), gf.projectVertex(vAb,canvas), RED, canvas)
-#
-# gf.drawLine(gf.projectVertex(vAf,canvas), gf.projectVertex(vAb,canvas), GREEN, canvas)
-# gf.drawLine(gf.projectVertex(vBf,canvas), gf.projectVertex(vBb,canvas), GREEN, canvas)
-# gf.drawLine(gf.projectVertex(vCf,canvas), gf.projectVertex(vCb,canvas), GREEN, canvas)
-# gf.drawLine(gf.projectVertex(vDf,canvas), gf.projectVertex(vDb,canvas), GREEN, canvas)
-
 canvas.show()

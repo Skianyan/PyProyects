@@ -4,10 +4,37 @@ import numpy as np
 
 # A Point.
 class Pt:
-	def __init__(self, x, y, h=1):
-            self.x = x
-            self.y = y
-            self.h = h
+    def __init__(self, x, y, h=1):
+        self.x = x
+        self.y = y
+        self.h = h
+
+
+# Model Class
+class Model:
+    def __init__(self, vertices, triangles):
+        self.vertices = vertices
+        self.triangles = triangles
+
+
+class Instance:
+    def __init__(self, model, position, orientation, scale=1):
+        self.model = model
+        self.position = position
+        self.orientation = orientation
+        self.scale = scale
+
+        self.transform = np.matmul(MakeTranslationMatrix(self.position), MakeRotationMatrix(self.orientation),
+                                   MakeScalingMatrix(self.scale))
+
+
+class Mat4x4:
+    def __init__(self, data):
+        self.data = data
+
+
+identity4x4 = Mat4x4([[1, 0, 0, 0], [0, 1, 0, 0], [0, 0, 1, 0], [0, 0, 0, 1]])
+
 
 # A 3D vertex.
 class Vertex:
@@ -18,64 +45,87 @@ class Vertex:
 
 
 class Triangle:
-	def __init__(self, indexes, color):
-		self.indexes = indexes
-		self.color = color
+    def __init__(self, indexes, color):
+        self.indexes = indexes
+        self.color = color
+
 
 # The putPixel() function.
-def putPixel(x, y, color, canvas):
-	x = canvas.width/2 + x
-	y = canvas.height/2 - y
+def MakeTranslationMatrix(translation):
+    return Mat4x4([[1, 0, 0, translation.x], [0, 1, 0, translation.y], [0, 0, 1, translation.z], [0, 0, 0, 1]])
 
-	if (x < 0 or x >= canvas.width or y < 0 or y >= canvas.height):
-		return
-	canvas.putpixel((int(x), int(y)), color)
+
+def MakeScalingMatrix(scale):
+    return Mat4x4([[scale, 0, 0, 0], [0, scale, 0, 0], [0, 0, scale, 0], [0, 0, 0, 1]])
+
+
+def MakeRotationMatrix(rotation):
+    x, y, z = rotation
+    MatRx = Mat4x4([[1, 0, 0, 0], [0, math.cos(x), -math.sin(x), 0], [0, math.sin(x), math.cos(x), 0], [0, 0, 0, 1]])
+
+    MatRy = Mat4x4([[math.cos(y), 0, math.sin(y), 0], [0, 1, 0, 0], [-math.sin(y), 0, math.cos(y), 0], [0, 0, 0, 1]])
+
+    MatRz = Mat4x4([[math.cos(z), -math.sin(z), 0, 0], [math.sin(z), math.cos(z), 0, 0], [0, 0, 0, 0], [0, 0, 0, 0]])
+
+    RotMat = np.matmul(MatRx, MatRy, MatRz)
+    return RotMat
+
+
+def putPixel(x, y, color, canvas):
+    x = canvas.width / 2 + x
+    y = canvas.height / 2 - y
+
+    if (x < 0 or x >= canvas.width or y < 0 or y >= canvas.height):
+        return
+    canvas.putpixel((int(x), int(y)), color)
 
 
 def interpolate(i0, d0, i1, d1):
-	if (i0 == i1):
-		return [d0]
+    if (i0 == i1):
+        return [d0]
 
-	values = []
-	a = (d1 - d0) / (i1 - i0)
-	d = d0
-	for i in range(i0, i1+1):
-		values.append(d)
-		d += a
+    values = []
+    a = (d1 - d0) / (i1 - i0)
+    d = d0
+    for i in range(i0, i1 + 1):
+        values.append(d)
+        d += a
 
-	return values
+    return values
 
 
 def drawLine(p0, p1, color, canvas):
-	dx = p1.x - p0.x
-	dy = p1.y - p0.y
+    dx = p1.x - p0.x
+    dy = p1.y - p0.y
 
-	if (abs(dx) > abs(dy)):
-		# The line is horizontal-ish. Make sure it's left to right.
-		if (dx < 0):
-			p0, p1 = p1, p0
+    if (abs(dx) > abs(dy)):
+        # The line is horizontal-ish. Make sure it's left to right.
+        if (dx < 0):
+            p0, p1 = p1, p0
 
-		# Compute the Y values and draw.
-		ys = interpolate(p0.x, p0.y, p1.x, p1.y)
-		for x in range(p0.x, p1.x):
-			putPixel(x, ys[(x - p0.x) | 0], color, canvas)
+        # Compute the Y values and draw.
+        ys = interpolate(p0.x, p0.y, p1.x, p1.y)
+        for x in range(p0.x, p1.x):
+            putPixel(x, ys[(x - p0.x) | 0], color, canvas)
 
-	else:
-		# The line is verical-ish. Make sure it's bottom to top.
-		if (dy < 0):
-			p0, p1 = p1, p0
+    else:
+        # The line is verical-ish. Make sure it's bottom to top.
+        if (dy < 0):
+            p0, p1 = p1, p0
 
-		# Compute the X values and draw.
-		xs = interpolate(p0.y, p0.x, p1.y, p1.x)
-		for y in range(p0.y, p1.y):
-			putPixel(xs[(y - p0.y) | 0], y, color, canvas)
+        # Compute the X values and draw.
+        xs = interpolate(p0.y, p0.x, p1.y, p1.x)
+        for y in range(p0.y, p1.y):
+            putPixel(xs[(y - p0.y) | 0], y, color, canvas)
 
-def drawWireframeTriangle (P0, P1, P2, color, canvas):
+
+def drawWireframeTriangle(P0, P1, P2, color, canvas):
     drawLine(P0, P1, color, canvas)
     drawLine(P1, P2, color, canvas)
     drawLine(P2, P0, color, canvas)
 
-def drawFilledTriangle (P0, P1, P2, color,canvas):
+
+def drawFilledTriangle(P0, P1, P2, color, canvas):
     # Sort the points so that y0 <= y1 <= y2
 
     if P1.y < P0.y:
@@ -90,12 +140,12 @@ def drawFilledTriangle (P0, P1, P2, color,canvas):
     x12 = interpolate(P1.y, P1.x, P2.y, P2.x)
     x02 = interpolate(P0.y, P0.x, P2.y, P2.x)
 
-    #Concatenate the short sides
-    #remove_last(x01)
+    # Concatenate the short sides
+    # remove_last(x01)
     x01.pop(-1)
     x012 = x01 + x12
 
-    #Determine which is left and which is right
+    # Determine which is left and which is right
     m = math.floor(len(x012) / 2)
     if x02[m] < x012[m]:
         x_left = x02
@@ -105,13 +155,14 @@ def drawFilledTriangle (P0, P1, P2, color,canvas):
         x_right = x02
 
     # Draw the horizontal segments
-    for y in range(P0.y,P2.y+1):
-        a=round(x_left[y - P0.y])
-        b=round(x_right[y - P0.y])
-        for x in range(a,b):
-            putPixel(x,y,color,canvas)
+    for y in range(P0.y, P2.y + 1):
+        a = round(x_left[y - P0.y])
+        b = round(x_right[y - P0.y])
+        for x in range(a, b):
+            putPixel(x, y, color, canvas)
 
-def drawShadedTriangle (P0, P1, P2, color,canvas):
+
+def drawShadedTriangle(P0, P1, P2, color, canvas):
     # Sort the points so that y0 <= y1 <= y2
 
     if P1.y < P0.y:
@@ -131,15 +182,15 @@ def drawShadedTriangle (P0, P1, P2, color,canvas):
     x02 = interpolate(P0.y, P0.x, P2.y, P2.x)
     h02 = interpolate(P0.y, P0.h, P2.y, P2.h)
 
-    #Concatenate the short sides
-    #remove_last(x01)
+    # Concatenate the short sides
+    # remove_last(x01)
     x01.pop(-1)
     x012 = x01 + x12
 
     h01.pop(-1)
     h012 = h01 + h12
 
-    #Determine which is left and which is right
+    # Determine which is left and which is right
     m = math.floor(len(x012) / 2)
     if x02[m] < x012[m]:
         x_left = x02
@@ -155,22 +206,23 @@ def drawShadedTriangle (P0, P1, P2, color,canvas):
         h_right = h02
 
     # Draw the horizontal segments
-    for y in range(P0.y,P2.y+1):
-        xl=round(x_left[y - P0.y])
-        hl=h_left[y - P0.y]
+    for y in range(P0.y, P2.y + 1):
+        xl = round(x_left[y - P0.y])
+        hl = h_left[y - P0.y]
 
-        xr=round(x_right[y - P0.y])
-        hr=h_right[y - P0.y]
+        xr = round(x_right[y - P0.y])
+        hr = h_right[y - P0.y]
 
-        h_segment = interpolate(xl,hl,xr,hr)
+        h_segment = interpolate(xl, hl, xr, hr)
 
-        for x in range(xl,xr):
+        for x in range(xl, xr):
             sh_color0 = round(color[0] * h_segment[x - xl])
             sh_color1 = round(color[1] * h_segment[x - xl])
             sh_color2 = round(color[2] * h_segment[x - xl])
-            shaded_color = (sh_color0,sh_color1,sh_color2)
+            shaded_color = (sh_color0, sh_color1, sh_color2)
 
-            putPixel(x,y,shaded_color,canvas)
+            putPixel(x, y, shaded_color, canvas)
+
 
 def calc_centroide(puntos):
     n = len(puntos)
@@ -192,17 +244,18 @@ def projectVertex(V, canvas):
     pp = Pt(xp, yp)
     return viewportToCanvas(pp, canvas)
 
+
 def viewportToCanvas(P2d, canvas):
     viewport_size = 1
     return Pt(int(P2d.x * canvas.width / viewport_size) | 0, int(P2d.y * canvas.height / viewport_size) | 0)
 
+
 def renderObject(vertices, triangles, canvas):
     projected = []
     for V in vertices:
-        projected.append(projectVertex(V,canvas))
+        projected.append(projectVertex(V, canvas))
     for T in triangles:
         renderTriangle(T, projected, canvas)
-
 
 
 def renderTriangle(triangle, projected, canvas):
@@ -210,6 +263,7 @@ def renderTriangle(triangle, projected, canvas):
                           projected[triangle[1]],
                           projected[triangle[2]],
                           triangle[3], canvas)
+
 
 ##########################################################
 # Dodecahedron....
@@ -219,6 +273,7 @@ def pent_triangles(p, color):
     triangles = [[p[0], p[1], cent], [p[1], p[2], cent], [p[2], p[3], cent], [p[3], p[4], cent],
                  [p[4], p[0], cent], color]
     return triangles
+
 
 def pentagons_to_triangles(pentagons):
     for p in pentagons:
