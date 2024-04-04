@@ -24,24 +24,55 @@ class Instance:
         self.orientation = orientation
         self.scale = scale
 
-        self.transform = np.matmul(MakeTranslationMatrix(self.position), MakeRotationMatrix(self.orientation),
-                                   MakeScalingMatrix(self.scale))
+        self.transform = MultiplyMM4(MakeTranslationMatrix(self.position), MultiplyMM4(MakeScalingMatrix(self.scale), MultiplyMM4(identity4x4, MakeRotationMatrix(self.orientation))))
 
+class Inst2:
+    def __init__(self, model, transform):
+        self.model = model
+        self.transform = transform
 
 class Mat4x4:
     def __init__(self, data):
         self.data = data
 
 
+def MultiplyMM4(matA, matB):
+    result = Mat4x4([[0, 0, 0, 0], [0, 0, 0, 0], [0, 0, 0, 0], [0, 0, 0, 0]])
+
+    for i in range(0, 4):
+        for j in range(0, 4):
+            for k in range(0, 4):
+                result.data[i][j] += matA.data[i][k] * matB.data[k][j]
+
+    return result
+
+
 identity4x4 = Mat4x4([[1, 0, 0, 0], [0, 1, 0, 0], [0, 0, 1, 0], [0, 0, 0, 1]])
+
+def ApplyTransform(vertex, transform):
+    scaled = MakeScalingMatrix(vertex, transform.scale)
+    rotated = MakeRotationMatrix(scaled, transform.orientation)
+    translated = MakeTranslationMatrix(rotated, transform.position)
+    return translated
+
+def MultiplyMV(mat4x4, vec4):
+    result = [0, 0, 0, 0]
+    vec = [vec4.x, vec4.y, vec4.z, vec4.w]
+
+    for i in range(0, 4):
+        for j in range(0, 4):
+            result[i] += mat4x4.data[i][j] * vec[j]
+
+    return Vertex(result[0], result[1], result[2], result[3])
 
 
 # A 3D vertex.
 class Vertex:
-    def __init__(self, x, y, z):
+    def __init__(self, x, y, z, w=1):
         self.x = x
         self.y = y
         self.z = z
+        self.w = w
 
 
 class Triangle:
@@ -60,14 +91,13 @@ def MakeScalingMatrix(scale):
 
 
 def MakeRotationMatrix(rotation):
-    x, y, z = rotation
-    MatRx = Mat4x4([[1, 0, 0, 0], [0, math.cos(x), -math.sin(x), 0], [0, math.sin(x), math.cos(x), 0], [0, 0, 0, 1]])
+    MatRx = Mat4x4([[1, 0, 0, 0], [0, math.cos(rotation.x), -math.sin(rotation.x), 0], [0, math.sin(rotation.x), math.cos(rotation.x), 0], [0, 0, 0, 1]])
 
-    MatRy = Mat4x4([[math.cos(y), 0, math.sin(y), 0], [0, 1, 0, 0], [-math.sin(y), 0, math.cos(y), 0], [0, 0, 0, 1]])
+    MatRy = Mat4x4([[math.cos(rotation.y), 0, math.sin(rotation.y), 0], [0, 1, 0, 0], [-math.sin(rotation.y), 0, math.cos(rotation.y), 0], [0, 0, 0, 1]])
 
-    MatRz = Mat4x4([[math.cos(z), -math.sin(z), 0, 0], [math.sin(z), math.cos(z), 0, 0], [0, 0, 0, 0], [0, 0, 0, 0]])
+    MatRz = Mat4x4([[math.cos(rotation.z), -math.sin(rotation.z), 0, 0], [math.sin(rotation.z), math.cos(rotation.z), 0, 0], [0, 0, 1, 0], [0, 0, 0, 1]])
 
-    RotMat = np.matmul(MatRx, MatRy, MatRz)
+    RotMat = MultiplyMM4(MatRx, MultiplyMM4(MatRz, MatRy))
     return RotMat
 
 

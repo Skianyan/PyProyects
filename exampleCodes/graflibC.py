@@ -1,6 +1,7 @@
 import math
 import numpy as np
 
+
 # A Point.
 class Pt:
     def __init__(self, x, y, h=1):
@@ -21,6 +22,85 @@ class Triangle:
     def __init__(self, indexes, color):
         self.indexes = indexes
         self.color = color
+
+
+# A Model.
+class Model:
+    def __init__(self, vertices, triangles):
+        self.vertices = vertices
+        self.triangles = triangles
+
+
+# An Instance.
+class Instance:
+    def __init__(self, model, position, orientation, scale=1.0):
+        self.model = model
+        self.position = position
+        self.orientation = orientation
+        self.scale = scale
+
+        self.transform = MultiplyMM4(MakeTranslationMatrix(self.position),
+                                     MultiplyMM4(Identity4x4, MakeScalingMatrix(self.scale)))
+
+
+# A 4x4 matrix.
+class Mat4x4:
+    def __init__(self, data):
+        self.data = data
+
+
+Identity4x4 = Mat4x4([[1, 0, 0, 0], [0, 1, 0, 0], [0, 0, 1, 0], [0, 0, 0, 1]])
+
+
+# Makes a transform matrix for a rotation around the OY axis.
+def MakeOYRotationMatrix(degrees):
+    cos = math.cos(degrees * math.pi / 180.0)
+    sin = math.sin(degrees * math.pi / 180.0)
+
+    return Mat4x4([[cos, 0, -sin, 0],
+                   [0, 1, 0, 0],
+                   [sin, 0, cos, 0],
+                   [0, 0, 0, 1]])
+
+
+# Makes a transform matrix for a translation.
+def MakeTranslationMatrix(translation):
+    return Mat4x4([[1, 0, 0, translation.x],
+                   [0, 1, 0, translation.y],
+                   [0, 0, 1, translation.z],
+                   [0, 0, 0, 1]])
+
+
+# Makes a transform matrix for a scaling.
+def MakeScalingMatrix(scale):
+    return Mat4x4([[scale, 0, 0, 0],
+                   [0, scale, 0, 0],
+                   [0, 0, scale, 0],
+                   [0, 0, 0, 1]])
+
+
+# Multiplies a 4x4 matrix and a 4D vector.
+def MultiplyMV(mat4x4, vec4):
+    result = [0, 0, 0, 0]
+    vec = [vec4.x, vec4.y, vec4.z, vec4.w]
+
+    for i in range(0, 4):
+        for j in range(0, 4):
+            result[i] += mat4x4.data[i][j] * vec[j]
+
+    return Vertex4(result[0], result[1], result[2], result[3])
+
+
+# Multiplies two 4x4 matrices.
+def MultiplyMM4(matA, matB):
+    result = Mat4x4([[0, 0, 0, 0], [0, 0, 0, 0], [0, 0, 0, 0], [0, 0, 0, 0]])
+
+    for i in range(0, 4):
+        for j in range(0, 4):
+            for k in range(0, 4):
+                result.data[i][j] += matA.data[i][k] * matB.data[k][j]
+
+    return result
 
 
 # The putPixel() function.
@@ -205,6 +285,5 @@ def renderTriangle(triangle, projected, canvas):
     p0 = projected[triangle.indexes[0]]
     p1 = projected[triangle.indexes[1]]
     p2 = projected[triangle.indexes[2]]
-    print(p0,p1,p2)
 
     drawWireframeTriangle(p0, p1, p2, triangle.color, canvas)
