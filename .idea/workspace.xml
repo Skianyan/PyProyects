@@ -5,15 +5,11 @@
   </component>
   <component name="ChangeListManager">
     <list default="true" id="0ad71cb2-d837-4ad5-8ff9-86274556a593" name="Changes" comment="shadedpolygonworks">
-      <change afterPath="$PROJECT_DIR$/exampleCodes/graflibC.py" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/exampleCodes/renderCuboC.py" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/logictests.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/.idea/Py.iml" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/.idea/misc.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/misc.xml" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/Examen3d/3dFiguresGUI.py" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/Examen3d/objGfxLib.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/3dInstancedFigures.py" beforeDir="false" afterPath="$PROJECT_DIR$/3dInstancedFigures.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/exampleCodes/graphlibC.py" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/gfxlib.py" beforeDir="false" afterPath="$PROJECT_DIR$/gfxlib.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/interactiveCanvas.py" beforeDir="false" afterPath="$PROJECT_DIR$/interactiveCanvas.py" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -55,7 +51,7 @@
     &quot;RunOnceActivity.ShowReadmeOnStart&quot;: &quot;true&quot;,
     &quot;WebServerToolWindowFactoryState&quot;: &quot;false&quot;,
     &quot;git-widget-placeholder&quot;: &quot;main&quot;,
-    &quot;last_opened_file_path&quot;: &quot;C:/Users/ricar/Documents/GitHub/Project/PyProyects/exampleCodes&quot;,
+    &quot;last_opened_file_path&quot;: &quot;C:/Users/ricar/Documents/GitHub/Project/PyProyects&quot;,
     &quot;node.js.detected.package.eslint&quot;: &quot;true&quot;,
     &quot;node.js.detected.package.tslint&quot;: &quot;true&quot;,
     &quot;node.js.selected.package.eslint&quot;: &quot;(autodetect)&quot;,
@@ -66,8 +62,12 @@
 }</component>
   <component name="RecentsManager">
     <key name="CopyFile.RECENT_KEYS">
+      <recent name="C:\Users\ricar\Documents\GitHub\Project\PyProyects" />
       <recent name="C:\Users\ricar\Documents\GitHub\Project\PyProyects\exampleCodes" />
       <recent name="C:\Users\ricar\OneDrive\Documentos\GitHub\PyProyects" />
+    </key>
+    <key name="MoveFile.RECENT_KEYS">
+      <recent name="C:\Users\ricar\Documents\GitHub\Project\PyProyects\Examen3d" />
     </key>
   </component>
   <component name="RunManager">

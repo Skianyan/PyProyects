@@ -12,13 +12,14 @@ class Pt:
         self.y = y
         self.h = h
 
+
 ##########################################
 # Drawing Functions
 
 
 def putPixel(x, y, color):
     if is_rgb(color):
-        color = rgb_to_hex(color[0],color[1],color[2])
+        color = rgb_to_hex(color[0], color[1], color[2])
     canvas.create_rectangle(x, y, x + 1, y + 1, outline=color)
 
 
@@ -54,9 +55,9 @@ def drawShadedTriangle(p0, p1, p2, fill):
     x12 = interpolate(y1, x1, y2, x2)
     h12 = interpolate(y1, h1, y2, h2)
 
-    #print('x01 =', x01)
-    #print('x02 =', x02)
-    #print('x12 =', x12)
+    # print('x01 =', x01)
+    # print('x02 =', x02)
+    # print('x12 =', x12)
 
     # Concatenate Short sides 'x'
     x01.pop(-1)
@@ -66,9 +67,9 @@ def drawShadedTriangle(p0, p1, p2, fill):
     h01.pop(-1)
     h012 = h01 + h12
 
-    #print('x012 =', x012)
-    #print(x012.__len__())
-    #print(x02.__len__())
+    # print('x012 =', x012)
+    # print(x012.__len__())
+    # print(x02.__len__())
 
     m = math.floor(len(x012) / 2)
     if x02[m] < x012[m]:
@@ -100,19 +101,19 @@ def drawShadedTriangle(p0, p1, p2, fill):
 def drawShadedPolygon(points, fill):
     fill = ImageColor.getcolor(fill, "RGB")
     p_cent = calcular_centroide(points)
-    #print("centroide (x,y):", p_cent.x, p_cent.y, p_cent.h)
+    # print("centroide (x,y):", p_cent.x, p_cent.y, p_cent.h)
     n = len(points)
-    #print("Cuantos puntos:", n)
+    # print("Cuantos puntos:", n)
 
     for current_point, next_point in zip(points, points[1:]):
-        #print("cp", current_point.x, current_point.y, current_point.h)
+        # print("cp", current_point.x, current_point.y, current_point.h)
         drawShadedTriangle(current_point, next_point, p_cent, fill)
-        #drawLine(current_point, next_point, "#000")
+        # drawLine(current_point, next_point, "#000")
 
     if next_point == points[n - 1]:
-        #print("cp", current_point.x, current_point.y, current_point.h)
+        # print("cp", current_point.x, current_point.y, current_point.h)
         drawShadedTriangle(points[0], next_point, p_cent, fill)
-        #drawLine(points[0], next_point, "#000")
+        # drawLine(points[0], next_point, "#000")
 
     return
 
@@ -129,7 +130,7 @@ def drawLine(p0, p1, color):
             x0, x1, y0, y1 = x1, x0, y1, y0
         ys = interpolate(x0, y0, x1, y1)
         for x in range(x0, x1):
-            putPixel(int(x), int(ys[x-x0]), color)
+            putPixel(int(x), int(ys[x - x0]), color)
     else:
         # Es una linea vertical
         if y0 > y1:
@@ -138,7 +139,8 @@ def drawLine(p0, p1, color):
         xs = interpolate(y0, x0, y1, x1)
 
         for y in range(y0, y1):
-            putPixel(int(xs[y-y0]), int(y), color);
+            putPixel(int(xs[y - y0]), int(y), color);
+
 
 ##########################################
 # Calculation Functions
@@ -175,11 +177,11 @@ def calcular_centroide(puntos):
     return cent
 
 
-def interpolate (i0,f0,i1,f1):
+def interpolate(i0, f0, i1, f1):
     if i0 == i1:
         return [f0]
     values = []
-    a = (f1-f0)/(i1-i0)
+    a = (f1 - f0) / (i1 - i0)
     f = f0
     for i in range(i0, i1 + 1):
         values.append(f)
@@ -210,9 +212,9 @@ def on_click(event):
     if color is not None:
         if points.__len__() < 7:
             x, y = event.x, event.y
-            #Place pixel (Placeholder)
+            # Place pixel (Placeholder)
             putPixel(x, y, color)
-            #Add click position to points
+            # Add click position to points
             points.append(Pt(x, y))
             print("Clicked at:" + " X: " + str(x) + " Y: " + str(y))
             generate_slider()
@@ -224,7 +226,7 @@ def on_enter(event):
     if event.name == 'enter' and color is not None:
         sliderval = get_slider_values()
         print("sliderval 'premod'", sliderval)
-        sliderval = [x/100 for x in sliderval]
+        sliderval = [x / 100 for x in sliderval]
         print("sliderval", sliderval)
         update_h_values(points, sliderval)
         # Draws a line last 2 points clicked
@@ -235,12 +237,12 @@ def on_enter(event):
         # cent = calcular_centroide(points)
         # print(cent.x, cent.y )
 
-        #print(points[-3].x)
-        #print(points[-2].x)
-        #print(points[-1].x)
+        # print(points[-3].x)
+        # print(points[-2].x)
+        # print(points[-1].x)
 
         # Draws a Triangle between all the points
-        #drawPointTriangle(points[-3], points[-2], points[-1], fill)
+        # drawPointTriangle(points[-3], points[-2], points[-1], fill)
 
         # Draws a polygon between all the points
         # testpuntos =[Pt(100, 100, 1), Pt(100, 200, .9), Pt(200, 200, .6), Pt(200, 100, .4)]
@@ -255,7 +257,7 @@ def on_enter(event):
             drawShadedPolygon(points, color)
             reset_params()
         print("enter / action done")
-        #print(ImageColor.getcolor("#800080", "RGB"))
+        # print(ImageColor.getcolor("#800080", "RGB"))
     else:
         if event.name == 'enter' and color is not None:
             print("please select a color")
@@ -267,15 +269,18 @@ def clear_canvas():
     points.clear()
     delete_sliders(frame_sliders)
 
+
 def generate_slider():
     new_slider = tk.Scale(frame_sliders, from_=0, to=100, orient=tk.HORIZONTAL)
     new_slider.pack(padx=10, pady=5)
     sliders.append(new_slider)
 
+
 def delete_sliders(frame_sliders):
     for slider in sliders:
         slider.destroy()
     sliders.clear()
+
 
 def select_color():
     global color
@@ -284,17 +289,23 @@ def select_color():
         color_label.config(bg=color)
     print(color)
 
+
 def reset_params():
     points.clear()
     delete_sliders(frame_sliders)
     sliders = []
+
+
 def show_color_palette():
     color = colorchooser.askcolor()[1]
     return color
 
+
 def update_h_values(points_array, sliders):
     for point, slider_value in zip(points_array, sliders):
         point.h = slider_value
+
+
 def get_slider_values():
     slider_values = []
     for i, slider in enumerate(sliders):
@@ -302,6 +313,7 @@ def get_slider_values():
         print(f"Slider {i + 1} value:", value)
         slider_values.append(value)
     return slider_values
+
 
 ##########################################
 # Get Canvas Size > 500
@@ -338,8 +350,6 @@ canvas = Canvas(root, width=width, height=500)
 canvas.create_image(0, 0, anchor=NW, image=cv)
 canvas.pack(side=tk.LEFT)
 
-
-
 # Options Frame
 frame_options = tk.Frame()
 show_palette_button = tk.Button(master=frame_options, text="Show Palette", command=select_color)
@@ -357,8 +367,8 @@ infolabel.pack(side=tk.BOTTOM)
 
 # Clear Frame
 frame_clear = tk.Frame()
-clear_button = tk.Button(root, text="Clear", borderwidth=1, command=clear_canvas, width= 10)
-clear_button.pack(side=tk.BOTTOM, padx=5, pady= 5)
+clear_button = tk.Button(root, text="Clear", borderwidth=1, command=clear_canvas, width=10)
+clear_button.pack(side=tk.BOTTOM, padx=5, pady=5)
 
 # Pack Frames
 frame_options.pack()
@@ -366,10 +376,8 @@ frame_sliders.pack()
 frame_clear.pack()
 frame_info.pack()
 
-
 # Bind mouse click event to the canvas
 canvas.bind("<Button-1>", on_click)
 keyboard.on_press(on_enter)
-
 
 root.mainloop()

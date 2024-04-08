@@ -47,8 +47,8 @@ cube = gf.Model(vertices, triangles)
 # gf.renderObject(cube.vertices, cube.triangles, canvas)
 
 
-# Instances Test
 
+# Instances Test
 def renderInstance(instance, canvas):
     projected = []
     i = 0
