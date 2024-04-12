@@ -9,6 +9,10 @@ class Pt:
         self.y = y
         self.h = h
 
+class Plane:
+    def __init__(self,normal,distance):
+        self.normal = normal
+        self.distance = distance
 
 # Model Class
 class Model:
@@ -26,6 +30,11 @@ class Instance:
 
         self.transform = MultiplyMM4(MakeTranslationMatrix(self.position), MultiplyMM4(MakeScalingMatrix(self.scale), MultiplyMM4(identity4x4, MakeRotationMatrix(self.orientation))))
 
+class Camera:
+    def __init__(self, position, orientation, clipping_planes):
+        self.position = position
+        self.orientation = orientation
+        self.clipping_planes = clipping_planes
 class Inst2:
     def __init__(self, model, transform):
         self.model = model

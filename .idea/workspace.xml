@@ -5,11 +5,10 @@
   </component>
   <component name="ChangeListManager">
     <list default="true" id="0ad71cb2-d837-4ad5-8ff9-86274556a593" name="Changes" comment="shadedpolygonworks">
-      <change afterPath="$PROJECT_DIR$/Examen3d/3dFiguresGUI.py" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/Examen3d/objGfxLib.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/misc.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/misc.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/3dInstancedFigures.py" beforeDir="false" afterPath="$PROJECT_DIR$/3dInstancedFigures.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/interactiveCanvas.py" beforeDir="false" afterPath="$PROJECT_DIR$/interactiveCanvas.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/gfxlib.py" beforeDir="false" afterPath="$PROJECT_DIR$/gfxlib.py" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -44,6 +43,7 @@
   &quot;keyToString&quot;: {
     &quot;ASKED_ADD_EXTERNAL_FILES&quot;: &quot;true&quot;,
     &quot;Python.3dCanvas.executor&quot;: &quot;Run&quot;,
+    &quot;Python.3dFiguresGUI.executor&quot;: &quot;Run&quot;,
     &quot;Python.3dInstancedFigures.executor&quot;: &quot;Run&quot;,
     &quot;Python.canvas.executor&quot;: &quot;Run&quot;,
     &quot;Python.dodecahedron.executor&quot;: &quot;Run&quot;,
@@ -73,6 +73,7 @@
   <component name="RunManager">
     <configuration name="3dCanvas" type="PythonConfigurationType" factoryName="Python" temporary="true" nameIsGenerated="true">
       <module name="Py" />
+      <option name="ENV_FILES" value="" />
       <option name="INTERPRETER_OPTIONS" value="" />
       <option name="PARENT_ENVS" value="true" />
       <envs>
@@ -94,6 +95,7 @@
     </configuration>
     <configuration name="dodecahedron" type="PythonConfigurationType" factoryName="Python" temporary="true" nameIsGenerated="true">
       <module name="Py" />
+      <option name="ENV_FILES" value="" />
       <option name="INTERPRETER_OPTIONS" value="" />
       <option name="PARENT_ENVS" value="true" />
       <envs>
@@ -115,6 +117,7 @@
     </configuration>
     <configuration name="interactiveCanvas" type="PythonConfigurationType" factoryName="Python" temporary="true" nameIsGenerated="true">
       <module name="Py" />
+      <option name="ENV_FILES" value="" />
       <option name="INTERPRETER_OPTIONS" value="" />
       <option name="PARENT_ENVS" value="true" />
       <envs>
@@ -136,6 +139,7 @@
     </configuration>
     <configuration name="test" type="PythonConfigurationType" factoryName="Python" temporary="true" nameIsGenerated="true">
       <module name="Py" />
+      <option name="ENV_FILES" value="" />
       <option name="INTERPRETER_OPTIONS" value="" />
       <option name="PARENT_ENVS" value="true" />
       <envs>
@@ -157,6 +161,7 @@
     </configuration>
     <configuration name="test1" type="PythonConfigurationType" factoryName="Python" temporary="true" nameIsGenerated="true">
       <module name="Py" />
+      <option name="ENV_FILES" value="" />
       <option name="INTERPRETER_OPTIONS" value="" />
       <option name="PARENT_ENVS" value="true" />
       <envs>
