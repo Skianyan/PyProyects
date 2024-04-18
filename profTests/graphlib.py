@@ -122,6 +122,9 @@ def Cross(v1, v2):
 def Add(v1, v2):
     return Vertex(v1.x + v2.x, v1.y + v2.y, v1.z + v2.z)
 
+# Computes v1 - v2.
+def Sub(v1, v2):
+    return Vertex(v1.x - v2.x, v1.y - v2.y, v1.z - v2.z)
 
 # Computes vector magnitude.
 def Magnitude(v1):
@@ -206,7 +209,7 @@ def interpolate(i0, d0, i1, d1):
     values = []
     a = (d1 - d0) / (i1 - i0)
     d = d0
-    for i in range(int(i0), i1 + 1):
+    for i in range(i0, i1 + 1):
         values.append(d)
         d += a
 
@@ -373,16 +376,3 @@ def renderTriangle(triangle, projected, canvas):
     p2 = projected[triangle.indexes[2]]
 
     drawWireframeTriangle(p0, p1, p2, triangle.color, canvas)
-
-
-def IntersectPlane(plane, p0, p1):
-    # Compute the direction vector of the line segment.
-    direction = Vertex(p1.x - p0.x, p1.y - p0.y, p1.z - p0.z)
-
-    # Compute the parameter t at which the line intersects the plane.
-    t = -(Dot(plane.normal, p0) + plane.distance) / Dot(plane.normal, direction)
-
-    # Compute the intersection point.
-    intersection_point = Vertex(p0.x + t * direction.x, p0.y + t * direction.y, p0.z + t * direction.z)
-
-    return intersection_point

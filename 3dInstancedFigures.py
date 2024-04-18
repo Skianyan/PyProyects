@@ -42,25 +42,28 @@ CYAN = (0, 255, 255)
 
 # Definir los triangulos
 cube_triangles = [(0, 1, 2, RED), (0, 2, 3, RED), (4, 0, 3, GREEN), (4, 3, 7, GREEN), (5, 4, 7, BLUE), (5, 7, 6, BLUE),
-             (1, 5, 6, YELLOW), (1, 6, 2, YELLOW), (4, 5, 1, PURPLE), (4, 1, 0, PURPLE), (2, 6, 7, CYAN),
-             (2, 7, 3, CYAN)]
+                  (1, 5, 6, YELLOW), (1, 6, 2, YELLOW), (4, 5, 1, PURPLE), (4, 1, 0, PURPLE), (2, 6, 7, CYAN),
+                  (2, 7, 3, CYAN)]
 
 cube = gf.Model(cube_vertices, cube_triangles)
+
 
 def clipTriangleAgainstPlane(triangles, plane, vertices):
     clipped_triangles = []
     for T in triangles:
+        print (T[0],T[1],T[2])
         clipped_triangles.append(clipTriangle(T, plane, vertices))
     return clipped_triangles
 
-def clipTriangle (triangle, plane, vertices):
+
+def clipTriangle(triangle, plane, vertices):
     v0 = vertices[triangle[0]]
     v1 = vertices[triangle[1]]
     v2 = vertices[triangle[2]]
 
-    in0 = np.dot(plane.normal, (v0.x, v0.y, v0.z)) + plane.distance > 0
-    in1 = np.dot(plane.normal, (v1.x, v1.y, v1.z)) + plane.distance > 0
-    in2 = np.dot(plane.normal, (v2.x, v2.y, v2.z)) + plane.distance > 0
+    in0 = np.dot((plane.normal.x, plane.normal.y, plane.normal.z), (v0.x, v0.y, v0.z)) + plane.distance > 0
+    in1 = np.dot((plane.normal.x, plane.normal.y, plane.normal.z), (v1.x, v1.y, v1.z)) + plane.distance > 0
+    in2 = np.dot((plane.normal.x, plane.normal.y, plane.normal.z), (v2.x, v2.y, v2.z)) + plane.distance > 0
 
     in_count = in0 + in1 + in2
 
@@ -106,12 +109,13 @@ def clipTriangle (triangle, plane, vertices):
 s2 = math.sqrt(2)
 
 clipping_planes = [
-    gf.Plane(gf.Vertex(0,0,1), -1),
-    gf.Plane(gf.Vertex(s2,0,s2), 0),
-    gf.Plane(gf.Vertex(-s2,0,s2), 0),
-    gf.Plane(gf.Vertex(0,-s2,s2), 0),
-    gf.Plane(gf.Vertex(0,s2,s2), 0),
+    gf.Plane(gf.Vertex(0, 0, 1), -1),
+    gf.Plane(gf.Vertex(s2, 0, s2), 0),
+    gf.Plane(gf.Vertex(-s2, 0, s2), 0),
+    gf.Plane(gf.Vertex(0, -s2, s2), 0),
+    gf.Plane(gf.Vertex(0, s2, s2), 0),
 ]
+
 
 def calculateClippedVertex(in_vertex, out_vertex, plane):
     t = (plane.distance - np.dot(plane.normal, (in_vertex.x, in_vertex.y, in_vertex.z))) / \
@@ -142,15 +146,15 @@ def renderScene(instances, canvas):
         i += 1
 
 
-instances = [gf.Instance(cube, gf.Vertex(0, 1.5, 10), gf.Vertex(0, 0, 0),  1)]
+instances = [gf.Instance(cube, gf.Vertex(0, 1.5, 10), gf.Vertex(0, 0, 0), 1)]
 
 for plane in clipping_planes:
     clipped_triangles = []
     for instance in instances:
         for triangle in instance.model.triangles:
             clipped_triangles.extend(clipTriangleAgainstPlane([triangle], plane, instance.model.vertices))
-    instances = [gf.Instance(gf.Model([], clipped_triangles), instance.position, instance.orientation, instance.scale) for instance in instances]
-
+    instances = [gf.Instance(gf.Model([], clipped_triangles), instance.position, instance.orientation, instance.scale)
+                 for instance in instances]
 
 renderScene(instances, canvas)
 
