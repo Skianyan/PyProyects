@@ -4,12 +4,7 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="0ad71cb2-d837-4ad5-8ff9-86274556a593" name="Changes" comment="shadedpolygonworks">
-      <change beforePath="$PROJECT_DIR$/.idea/misc.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/misc.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/3dInstancedFigures.py" beforeDir="false" afterPath="$PROJECT_DIR$/3dInstancedFigures.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/gfxlib.py" beforeDir="false" afterPath="$PROJECT_DIR$/gfxlib.py" afterDir="false" />
-    </list>
+    <list default="true" id="0ad71cb2-d837-4ad5-8ff9-86274556a593" name="Changes" comment="shadedpolygonworks" />
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
     <option name="HIGHLIGHT_NON_ACTIVE_CHANGELIST" value="false" />
@@ -70,7 +65,7 @@
       <recent name="C:\Users\ricar\Documents\GitHub\Project\PyProyects\Examen3d" />
     </key>
   </component>
-  <component name="RunManager">
+  <component name="RunManager" selected="Python.dodecahedron">
     <configuration name="3dCanvas" type="PythonConfigurationType" factoryName="Python" temporary="true" nameIsGenerated="true">
       <module name="Py" />
       <option name="ENV_FILES" value="" />
