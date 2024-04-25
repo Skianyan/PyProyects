@@ -4,7 +4,10 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="0ad71cb2-d837-4ad5-8ff9-86274556a593" name="Changes" comment="shadedpolygonworks" />
+    <list default="true" id="0ad71cb2-d837-4ad5-8ff9-86274556a593" name="Changes" comment="shadedpolygonworks">
+      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/exampleCodes/graflibC.py" beforeDir="false" afterPath="$PROJECT_DIR$/exampleCodes/graflibC.py" afterDir="false" />
+    </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
     <option name="HIGHLIGHT_NON_ACTIVE_CHANGELIST" value="false" />

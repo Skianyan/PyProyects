@@ -281,6 +281,106 @@ def drawFilledTriangle(P0, P1, P2, color, canvas):
             putPixel(x, y, color, canvas)
 
 
+def ComputeTriangleNormal(vertex1, vertex2, vertex3):
+    # Calculate the vectors representing the two edges of the triangle
+    edge1 = np.array(vertex2) - np.array(vertex1)
+    edge2 = np.array(vertex3) - np.array(vertex1)
+
+    # Compute the cross product of the edges to get the normal vector
+    normal = np.cross(edge1, edge2)
+
+    # Normalize the normal vector to unit length
+    normal /= np.linalg.norm(normal)
+
+    return tuple(normal)
+
+
+def EdgeInterpolate(y0, x0, y1, x1, y2, x2):
+    # Calculate the slopes of the attributes
+    slope0 = (x2 - x0) / (y2 - y0)
+    slope1 = (x2 - x1) / (y2 - y1)
+
+    # Interpolate values at the start and end points of the edge
+    val0 = x0 + slope0 * (y1 - y0)
+    val1 = x1 + slope1 * (y2 - y1)
+
+    return val0, val1
+
+def UpdateDepthBufferIfCloser(depth_buffer, x, y, inv_z):
+    if x < 0 or x >= len(depth_buffer) or y < 0 or y >= len(depth_buffer[0]):
+        return False
+
+    if inv_z <= depth_buffer[x][y]:
+        depth_buffer[x][y] = inv_z
+        return True
+
+    return False
+
+
+def MultiplyColor(color, intensity):
+    # Multiplication of color components with an intensity factor
+    multiplied_color = tuple(int(c * intensity) for c in color)
+
+    return multiplied_color
+
+
+def SortedVertexIndexes(vertex_indexes, projected_vertices):
+    # Sort the vertex indexes based on the projected Y-coordinates of the vertices
+    sorted_indexes = sorted(vertex_indexes, key=lambda i: projected_vertices[i].y)
+
+    return sorted_indexes
+
+def renderTriangleDepth(triangle, vertices, projected, canvas, depth_buffer= 0, intensity = 1):
+    # Sort by projected point Y.
+    indexes = SortedVertexIndexes(triangle.indexes, projected)
+    i0, i1, i2 = indexes[0], indexes[1], indexes[2]
+
+    v0 = vertices[triangle.indexes[i0]]
+    v1 = vertices[triangle.indexes[i1]]
+    v2 = vertices[triangle.indexes[i2]]
+
+    # Compute triangle normal. Use the unsorted vertices, otherwise the winding of the points may change.
+    normal = ComputeTriangleNormal(vertices[triangle.indexes[0]], vertices[triangle.indexes[1]],
+                                   vertices[triangle.indexes[2]])
+
+    # Backface culling.
+    vertex = vertices[triangle.indexes[0]]
+    if Dot(vertex, normal) >= 0:
+        return
+
+    # Get attribute values (X, 1/Z) at the vertices.
+    p0 = projected[triangle.indexes[i0]]
+    p1 = projected[triangle.indexes[i1]]
+    p2 = projected[triangle.indexes[i2]]
+
+    # Compute attribute values at the edges.
+    x02, x012 = EdgeInterpolate(p0.y, p0.x, p1.y, p1.x, p2.y, p2.x)
+    iz02, iz012 = EdgeInterpolate(p0.y, 1.0 / v0.z, p1.y, 1.0 / v1.z, p2.y, 1.0 / v2.z)
+
+    # Determine which is left and which is right.
+    m = int(len(x02) / 2) | 0
+    if x02[m] < x012[m]:
+        x_left, x_right = x02, x012
+        iz_left, iz_right = iz02, iz012
+
+    else:
+        x_left, x_right = x012, x02
+        iz_left, iz_right = iz012, iz02
+
+    # Draw horizontal segments.
+    for y in range(p0.y, p2.y + 1):
+        xl, xr = int(x_left[y - p0.y]) | 0, int(x_right[y - p0.y]) | 0
+
+        # Interpolate attributes for self scanline.
+        zl, zr = iz_left[y - p0.y], iz_right[y - p0.y]
+        zscan = interpolate(xl, zl, xr, zr)
+        for x in range(xl, xr):
+            inv_z = zscan[x - xl]
+            if UpdateDepthBufferIfCloser(canvas, depth_buffer, x, y, inv_z):
+                putPixel(canvas, x, y, MultiplyColor(triangle.color, intensity))
+
+
+
 def drawShadedTriangle(P0, P1, P2, color, canvas):
     # Sort the points so that y0 <= y1 <= y2
 
@@ -366,13 +466,22 @@ def renderObject(vertices, triangles, canvas):
         renderTriangle(T, projected, canvas)
 
 
+def renderTriangleOld(triangle, projected, canvas):
+    # Get attribute values (X, 1/Z) at the vertices.
+    p0 = projected[triangle.indexes[0]]
+    p1 = projected[triangle.indexes[1]]
+    p2 = projected[triangle.indexes[2]]
+
+    renderTriangleDepth(p0, p1, p2, triangle.color, canvas)
+
+
 def renderTriangle(triangle, projected, canvas):
     # Get attribute values (X, 1/Z) at the vertices.
     p0 = projected[triangle.indexes[0]]
     p1 = projected[triangle.indexes[1]]
     p2 = projected[triangle.indexes[2]]
 
-    drawWireframeTriangle(p0, p1, p2, triangle.color, canvas)
+    drawShadedTriangle(p0, p1, p2, triangle.color, canvas)
 
 
 def IntersectPlane(plane, p0, p1):
