@@ -432,7 +432,7 @@ def EdgeInterpolate(y0, v0, y1, v1, y2, v2):
     return v02, v012
 
 
-def renderTriangleDepth(triangle, vertices, projected, depth_buffer, canvas, lights):
+def renderTriangleDepth(triangle, vertices, projected, depth_buffer, canvas, lights, camera):
     # Sort by projected point Y.
     indexes = SortedVertexIndexes(triangle.indexes, projected)
     i0, i1, i2 = indexes[0], indexes[1], indexes[2]
@@ -461,12 +461,6 @@ def renderTriangleDepth(triangle, vertices, projected, depth_buffer, canvas, lig
     x02, x012 = EdgeInterpolate(p0.y, p0.x, p1.y, p1.x, p2.y, p2.x)
     iz02, iz012 = EdgeInterpolate(p0.y, 1.0 / v0.z, p1.y, 1.0 / v1.z, p2.y, 1.0 / v2.z)
 
-    ## lighting calculations
-    ## calc triangle center
-    normal =
-    ## compute intensity
-    intensity = ComputeLighting(v,normal,v,v)
-
     # Determine which is left and which is right.
     m = int(len(x02) / 2)
     if x02[m] < x012[m]:
@@ -487,8 +481,18 @@ def renderTriangleDepth(triangle, vertices, projected, depth_buffer, canvas, lig
         for x in range(xl, xr):
             inv_z = zscan[x - xl]
             if UpdateDepthBufferIfCloser(canvas, depth_buffer, x, y, inv_z):
-                putPixel(x, y, triangle.color * intensity, canvas)
+                intensity = ComputeLighting(vertices[triangle.indexes[i0]], normal, camera, lights)
+                ##print(intensity[0],intensity[1],intensity[2])
+                lightcolor = ColorCalculation(triangle.color[0],triangle.color[1],triangle.color[2],intensity)
+                ##print(intensity)
+                putPixel(x, y, lightcolor, canvas)
 
+def ColorCalculation(t1,t2,t3,i):
+    x = int(np.multiply(t1, i))
+    y = int(np.multiply(t2, i))
+    z = int(np.multiply(t3, i))
+    color = (x,y,z)
+    return color
 
 def RenderScene(camera, instances, depth_buffer, canvas, lights):
     cameraMatrix = MultiplyMM4(Transposed(camera.orientation), MakeTranslationMatrix(Multiply(-1, camera.position)))
@@ -497,16 +501,16 @@ def RenderScene(camera, instances, depth_buffer, canvas, lights):
         transform = MultiplyMM4(cameraMatrix, instances[i].transform)
         clipped = TransformAndClip(camera.clipping_planes, instances[i].model, instances[i].scale, transform)
         if (clipped != None):
-            RenderModel(clipped, depth_buffer, canvas, lights)
+            RenderModel(clipped, depth_buffer, canvas, lights, camera)
 
 
-def RenderModel(model, depth_buffer, canvas, lights):
+def RenderModel(model, depth_buffer, canvas, lights, camera):
     projected = []
     for i in range(0, len(model.vertices)):
         projected.append(projectVertex(Vertex4(model.vertices[i]), canvas))
     for i in range(0, len(model.triangles)):
         # renderTriangle(model.triangles[i], projected, canvas)
-        renderTriangleDepth(model.triangles[i], model.vertices, projected, depth_buffer, canvas, lights)
+        renderTriangleDepth(model.triangles[i], model.vertices, projected, depth_buffer, canvas, lights, camera)
 
 
 # Clipping
@@ -563,28 +567,41 @@ def TransformAndClip(clipping_planes, model, scale, transform):
 
 def Magnitud(v):
     return math.sqrt(Dot(v,v));
+
+def Magnitude(v):
+    vx = math.sqrt(v[0] * v[0])
+    vy = math.sqrt(v[1] * v[1])
+    vz = math.sqrt(v[2] * v[2])
+    mag = vx + vy + vz
+    return mag
+def scalar_multiply(vector, scalar):
+    result = (vector.x * scalar, vector.y * scalar, vector.z * scalar)
+    return result
+
 def ComputeLighting (vertex,normal,camera,lights):
     i = 0
     s = 1
     for light in lights:
         if light.type == "ambient":
             i += light.intensity
-        elif light.type == "point":
-            L = light.vector - vertex
         else:
-            L = light.vector
+            if light.type == "point":
+                L = np.subtract(light.vector, (vertex.x, vertex.y, vertex.z))
+            else:
+                L = light.vector
+
 
             # Luz difusa
-            n_dot_l = Dot(normal, L)
+            n_dot_l = np.vdot((normal.x,normal.y,normal.z), L)
             if n_dot_l > 0:
-                i += light.intensity * n_dot_l/(Magnitud(normal)*Magnitud(L))
-
+                i += light.intensity * n_dot_l/(Magnitud(normal)*Magnitude(L))
+                ##print(i)
             # Luz especular
             if s != -1:
-                R = 2 * normal * Dot(normal, L) - L
-                r_dot_v = Dot(R, camera.position)
+                R = np.multiply(scalar_multiply(normal,2), np.vdot((normal.x,normal.y,normal.z), L)) - L
+                r_dot_v = np.vdot(R, (camera.position.x,camera.position.y,camera.position.z))
                 if r_dot_v > 0:
-                    i += light.intensity * pow(r_dot_v / (Magnitud(R) * Magnitud(camera.position)), s)
+                    i += light.intensity * pow(r_dot_v / (np.multiply(Magnitude(R), Magnitud(camera.position))), s)
     return i
 
 

@@ -47,11 +47,12 @@
     "Python.canvas.executor": "Run",
     "Python.carasOcultas.executor": "Run",
     "Python.dodecahedron.executor": "Run",
+    "Python.graflibC.executor": "Run",
     "RunOnceActivity.OpenProjectViewOnStart": "true",
     "RunOnceActivity.ShowReadmeOnStart": "true",
     "WebServerToolWindowFactoryState": "false",
     "git-widget-placeholder": "main",
-    "last_opened_file_path": "C:/Users/ricar/PycharmProjects/analizador",
+    "last_opened_file_path": "C:/Users/ricar/OneDrive/Documentos/GitHub/PyProyects",
     "node.js.detected.package.eslint": "true",
     "node.js.detected.package.tslint": "true",
     "node.js.selected.package.eslint": "(autodetect)",
@@ -72,7 +73,7 @@
       <recent name="C:\Users\ricar\Documents\GitHub\Project\PyProyects\Examen3d" />
     </key>
   </component>
-  <component name="RunManager" selected="Python.dodecahedron">
+  <component name="RunManager">
     <configuration name="3dCanvas" type="PythonConfigurationType" factoryName="Python" temporary="true" nameIsGenerated="true">
       <module name="Py" />
       <option name="ENV_FILES" value="" />
