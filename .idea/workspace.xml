@@ -5,10 +5,9 @@
   </component>
   <component name="ChangeListManager">
     <list default="true" id="0ad71cb2-d837-4ad5-8ff9-86274556a593" name="Changes" comment="shadedpolygonworks">
-      <change afterPath="$PROJECT_DIR$/carasocultas/carasOcultas.py" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/carasocultas/graflibC.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/.idea/misc.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/misc.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/carasocultas/carasOcultas.py" beforeDir="false" afterPath="$PROJECT_DIR$/carasocultas/carasOcultas.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/carasocultas/graflibC.py" beforeDir="false" afterPath="$PROJECT_DIR$/carasocultas/graflibC.py" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -52,7 +51,7 @@
     "RunOnceActivity.ShowReadmeOnStart": "true",
     "WebServerToolWindowFactoryState": "false",
     "git-widget-placeholder": "main",
-    "last_opened_file_path": "C:/Users/ricar/OneDrive/Documentos/GitHub/PyProyects/carasocultas",
+    "last_opened_file_path": "C:/Users/ricar/PycharmProjects/analizador",
     "node.js.detected.package.eslint": "true",
     "node.js.detected.package.tslint": "true",
     "node.js.selected.package.eslint": "(autodetect)",
@@ -73,7 +72,7 @@
       <recent name="C:\Users\ricar\Documents\GitHub\Project\PyProyects\Examen3d" />
     </key>
   </component>
-  <component name="RunManager">
+  <component name="RunManager" selected="Python.dodecahedron">
     <configuration name="3dCanvas" type="PythonConfigurationType" factoryName="Python" temporary="true" nameIsGenerated="true">
       <module name="Py" />
       <option name="ENV_FILES" value="" />

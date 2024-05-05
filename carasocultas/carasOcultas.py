@@ -135,7 +135,7 @@ dtriangles = [
 dodecahedron = gf.Model(dvertices, dtriangles, gf.Vertex(0, 0, 0), math.sqrt(3))
 
 # Hacer 3 instancias del cubo
-instances = [gf.Instance(dodecahedron, gf.Vertex(6, 0, 15), gf.MakeOYRotationMatrix(130), 0.75)]
+instances = [gf.Instance(dodecahedron, gf.Vertex(6, 0, 20), gf.MakeOYRotationMatrix(200), 0.75)]
 
 # Parámetros de la cámara
 camera = gf.Camera(gf.Vertex(-3, 1, 2), gf.MakeOYRotationMatrix(-30))
@@ -148,9 +148,13 @@ camera.clipping_planes = [
     gf.Plane(gf.Vertex(0, -s2, s2), 0),  # Top
     gf.Plane(gf.Vertex(0, s2, s2), 0),  # Bottom
 ]
+lights = [
+    gf.Light("ambient",0.2),
+    gf.Light("point", 0.6, (2, 1, 0)),
+    gf.Light("directional", 0.2, (1, 4, 4))]
 
 depth_buffer = np.zeros(canvas.size[0] * canvas.size[1])
 
-gf.RenderScene(camera, instances, depth_buffer, canvas)
+gf.RenderScene(camera, instances, depth_buffer, canvas, lights)
 
 canvas.show()
