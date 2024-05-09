@@ -481,10 +481,10 @@ def renderTriangleDepth(triangle, vertices, projected, depth_buffer, canvas, lig
         for x in range(xl, xr):
             inv_z = zscan[x - xl]
             if UpdateDepthBufferIfCloser(canvas, depth_buffer, x, y, inv_z):
-                ## to-do. Calculate intensity in each vertex of triangle (not the center), interpolate between vertexes
-                ## to create gradient effect.
                 intensity = ComputeLighting(vertices[triangle.indexes[i0]], normal, camera, lights)
+                ##print(intensity[0],intensity[1],intensity[2])
                 lightcolor = ColorCalculation(triangle.color[0],triangle.color[1],triangle.color[2],intensity)
+                ##print(intensity)
                 putPixel(x, y, lightcolor, canvas)
 
 def ColorCalculation(t1,t2,t3,i):
