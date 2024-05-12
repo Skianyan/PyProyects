@@ -5,8 +5,9 @@
   </component>
   <component name="ChangeListManager">
     <list default="true" id="0ad71cb2-d837-4ad5-8ff9-86274556a593" name="Changes" comment="shadedpolygonworks">
+      <change afterPath="$PROJECT_DIR$/gouraudShading/gouraud.py" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/gouraudShading/graflibC.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/carasocultas/graflibC.py" beforeDir="false" afterPath="$PROJECT_DIR$/carasocultas/graflibC.py" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -46,6 +47,7 @@
     &quot;Python.canvas.executor&quot;: &quot;Run&quot;,
     &quot;Python.carasOcultas.executor&quot;: &quot;Run&quot;,
     &quot;Python.dodecahedron.executor&quot;: &quot;Run&quot;,
+    &quot;Python.gouraud.executor&quot;: &quot;Run&quot;,
     &quot;Python.graflibC.executor&quot;: &quot;Run&quot;,
     &quot;RunOnceActivity.OpenProjectViewOnStart&quot;: &quot;true&quot;,
     &quot;RunOnceActivity.ShowReadmeOnStart&quot;: &quot;true&quot;,
@@ -62,17 +64,17 @@
 }</component>
   <component name="RecentsManager">
     <key name="CopyFile.RECENT_KEYS">
+      <recent name="C:\Users\ricar\OneDrive\Documentos\GitHub\PyProyects" />
       <recent name="C:\Users\ricar\OneDrive\Documentos\GitHub\PyProyects\carasocultas" />
       <recent name="C:\Users\ricar\Documents\GitHub\Project\PyProyects" />
       <recent name="C:\Users\ricar\Documents\GitHub\Project\PyProyects\exampleCodes" />
-      <recent name="C:\Users\ricar\OneDrive\Documentos\GitHub\PyProyects" />
     </key>
     <key name="MoveFile.RECENT_KEYS">
       <recent name="C:\Users\ricar\OneDrive\Documentos\GitHub\PyProyects\carasocultas" />
       <recent name="C:\Users\ricar\Documents\GitHub\Project\PyProyects\Examen3d" />
     </key>
   </component>
-  <component name="RunManager">
+  <component name="RunManager" selected="Python.dodecahedron">
     <configuration name="3dCanvas" type="PythonConfigurationType" factoryName="Python" temporary="true" nameIsGenerated="true">
       <module name="Py" />
       <option name="ENV_FILES" value="" />
@@ -184,9 +186,9 @@
       <method v="2" />
     </configuration>
     <list>
+      <item itemvalue="Python.3dCanvas" />
       <item itemvalue="Python.dodecahedron" />
       <item itemvalue="Python.interactiveCanvas" />
-      <item itemvalue="Python.3dCanvas" />
       <item itemvalue="Python.test1" />
       <item itemvalue="Python.test" />
     </list>
