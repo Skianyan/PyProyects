@@ -3,6 +3,7 @@ from tkinter import *
 import tkinter as tk
 
 import keyboard
+import numpy as np
 
 import objGfxLib as gf
 from math import floor
@@ -43,33 +44,36 @@ pyrVertices.append(vTp), pyrVertices.append(vAp), pyrVertices.append(vBp), pyrVe
 pyrTriangles = [(0, 1, 2, RED), (0, 2, 3, RED), (0, 3, 4, RED),
                 (0, 3, 1, YELLOW), (1, 3, 4, YELLOW), (1, 2, 4, CYAN)]
 
-pyramid = gf.Model(pyrVertices, pyrTriangles)
+pyramid = gf.Model(pyrVertices, pyrTriangles, gf.Vertex(0, 0, 0), math.sqrt(3))
 
-# Define Cube
-# Define Front Vertexes
-vAf = gf.Vertex(.5, -0.5, -0.5)
-vBf = gf.Vertex(.5, 0.5, -0.5)
-vCf = gf.Vertex(-.5, 0.5, -0.5)
-vDf = gf.Vertex(-.5, -0.5, -0.5)
+#Define Cube
+vertices = [
+    gf.Vertex(1, 1, 1),
+    gf.Vertex(-1, 1, 1),
+    gf.Vertex(-1, -1, 1),
+    gf.Vertex(1, -1, 1),
+    gf.Vertex(1, 1, -1),
+    gf.Vertex(-1, 1, -1),
+    gf.Vertex(-1, -1, -1),
+    gf.Vertex(1, -1, -1)]
 
-# Define Back Vertexes
-vAb = gf.Vertex(.5, -0.5, 0.5)
-vBb = gf.Vertex(.5, 0.5, 0.5)
-vCb = gf.Vertex(-.5, 0.5, 0.5)
-vDb = gf.Vertex(-.5, -0.5, 0.5)
+triangles = [
+    gf.Triangle([0, 1, 2], RED, [gf.Vertex(0, 0, 1), gf.Vertex(0, 0, 1), gf.Vertex(0, 0, 1)]),
+    gf.Triangle([0, 2, 3], RED, [gf.Vertex(0, 0, 1), gf.Vertex(0, 0, 1), gf.Vertex(0, 0, 1)]),
+    gf.Triangle([4, 0, 3], GREEN, [gf.Vertex(1, 0, 0), gf.Vertex(1, 0, 0), gf.Vertex(1, 0, 0)]),
+    gf.Triangle([4, 3, 7], GREEN, [gf.Vertex(1, 0, 0), gf.Vertex(1, 0, 0), gf.Vertex(1, 0, 0)]),
+    gf.Triangle([5, 4, 7], BLUE, [gf.Vertex(0, 0, -1), gf.Vertex(0, 0, -1), gf.Vertex(0, 0, -1)]),
+    gf.Triangle([5, 7, 6], BLUE, [gf.Vertex(0, 0, -1), gf.Vertex(0, 0, -1), gf.Vertex(0, 0, -1)]),
+    gf.Triangle([1, 5, 6], YELLOW, [gf.Vertex(-1, 0, 0), gf.Vertex(-1, 0, 0), gf.Vertex(-1, 0, 0)]),
+    gf.Triangle([1, 6, 2], YELLOW, [gf.Vertex(-1, 0, 0), gf.Vertex(-1, 0, 0), gf.Vertex(-1, 0, 0)]),
+    gf.Triangle([1, 0, 5], PURPLE, [gf.Vertex(0, 1, 0), gf.Vertex(0, 1, 0), gf.Vertex(0, 1, 0)]),
+    gf.Triangle([5, 0, 4], PURPLE, [gf.Vertex(0, 1, 0), gf.Vertex(0, 1, 0), gf.Vertex(0, 1, 0)]),
+    gf.Triangle([2, 6, 7], CYAN, [gf.Vertex(0, -1, 0), gf.Vertex(0, -1, 0), gf.Vertex(0, -1, 0)]),
+    gf.Triangle([2, 7, 3], CYAN, [gf.Vertex(0, -1, 0), gf.Vertex(0, -1, 0), gf.Vertex(0, -1, 0)]),
+]
 
-# Add vertexes to list
-vertices = []
-vertices.append(vAf), vertices.append(vBf), vertices.append(vCf), vertices.append(vDf),
-vertices.append(vAb), vertices.append(vBb), vertices.append(vCb), vertices.append(vDb)
-
-# Definir los triangulos
-triangles = []
-triangles = [(0, 1, 2, RED), (0, 2, 3, RED), (4, 0, 3, GREEN), (4, 3, 7, GREEN), (5, 4, 7, BLUE), (5, 7, 6, BLUE),
-             (1, 5, 6, YELLOW), (1, 6, 2, YELLOW), (4, 5, 1, PURPLE), (4, 1, 0, PURPLE), (2, 6, 7, CYAN),
-             (2, 7, 3, CYAN)]
-
-cube = gf.Model(vertices, triangles)
+# Definir el modelo de un cubo
+cube = gf.Model(vertices, triangles, gf.Vertex(0, 0, 0), math.sqrt(3))
 
 
 ##########################################
@@ -93,21 +97,28 @@ def rerender(camera):
 
 
 def get_values():
+    # Translation values
     ttx = translation_x.get()
     tty = translation_y.get()
     ttz = translation_z.get()
+
+    # Rotation Values
     rtx = rot_x.get()
     rty = rot_y.get()
     rtz = rot_z.get()
+
+    # Scale Value
     sca = scale.get()
 
+    # Converting from 360 degrees
     rtx = (rtx * math.pi) / 180
     rty = (rty * math.pi) / 180
     rtz = (rtz * math.pi) / 180
 
-    ttx = float(ttx) if ttx else 0
-    tty = float(tty) if tty else 0
-    ttz = float(ttz) if ttz else 0
+    # Setting default values if null
+    ttx = float(ttx) if ttx else .1
+    tty = float(tty) if tty else .1
+    ttz = float(ttz) if ttz else .1
     sca = float(sca) if sca else 1
 
     return ttx, tty, ttz, rtx, rty, rtz, sca
@@ -272,6 +283,29 @@ scale_label.pack(side=TOP, fill=BOTH, pady=5)
 scale = tk.Entry(frame_scale, width=5)
 scale.pack(side=BOTTOM)
 
+# Lights Frame
+
+frame_lights_labels = tk.Frame()
+frame_lights = tk.Frame()
+
+lights_label = tk.Label(frame_lights_labels, text="Light position")
+lights_label.pack(side=TOP, fill=BOTH, pady=5)
+
+lights_label_x = tk.Label(frame_lights_labels, text="x", width=4)
+lights_label_x.pack(side=LEFT)
+lights_x = tk.Entry(frame_translation, width=5)
+lights_x.pack(side=LEFT)
+
+lights_label_y = tk.Label(frame_lights_labels, text="y", width=4)
+lights_label_y.pack(side=LEFT)
+lights_y = tk.Entry(frame_translation, width=5)
+lights_y.pack(side=LEFT)
+
+lights_label_z = tk.Label(frame_lights_labels, text="z", width=4)
+lights_label_z.pack(side=LEFT)
+lights_z = tk.Entry(frame_translation, width=5)
+lights_z.pack(side=LEFT)
+
 # Info Frame
 frame_info = tk.Frame()
 infolabel = tk.Label(root, text="Press 'enter' to generate polygon")
@@ -297,6 +331,9 @@ frame_rotz.pack()
 frame_scale.pack()
 frame_clear.pack()
 frame_info.pack()
+
+##########################################
+depth_buffer = np.zeros(canvas.size[0] * canvas.size[1])
 
 renderScene(instances, canvas)
 
