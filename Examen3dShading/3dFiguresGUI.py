@@ -14,7 +14,26 @@ height = 501
 
 instances = []
 
-camera = gf.Camera(gf.Vertex(0, 0, 0), gf.Vertex(0, 0, 0))
+global camera
+camera = gf.Camera(gf.Vertex(0, 0, 0), gf.MakeOYRotationMatrix(0))
+
+s2 = math.sqrt(2)
+camera.clipping_planes = [
+    gf.Plane(gf.Vertex(0, 0, 1), -1),  # Near
+    gf.Plane(gf.Vertex(s2, 0, s2), 0),  # Left
+    gf.Plane(gf.Vertex(-s2, 0, s2), 0),  # Right
+    gf.Plane(gf.Vertex(0, -s2, s2), 0),  # Top
+    gf.Plane(gf.Vertex(0, s2, s2), 0),  # Bottom
+]
+
+# A Light.
+LT_AMBIENT = 0;
+LT_POINT = 1;
+LT_DIRECTIONAL = 2;
+
+lights = [gf.Light(LT_AMBIENT, 0.2), gf.Light(LT_DIRECTIONAL, 0.2, gf.Vertex(-1, 0, 1)),
+          gf.Light(LT_POINT, 0.6, gf.Vertex(2, 0, 4))]
+
 ##############################################################################################
 # Define color constants
 BLUE = (10, 10, 255)
@@ -46,7 +65,7 @@ pyrTriangles = [(0, 1, 2, RED), (0, 2, 3, RED), (0, 3, 4, RED),
 
 pyramid = gf.Model(pyrVertices, pyrTriangles, gf.Vertex(0, 0, 0), math.sqrt(3))
 
-#Define Cube
+# Define Cube
 vertices = [
     gf.Vertex(1, 1, 1),
     gf.Vertex(-1, 1, 1),
@@ -84,41 +103,36 @@ def clear_canvas_instances():
     canvas.create_image(0, 0, anchor=NW, image=cv)
     instances.clear()
 
+
 def clear_canvas():
     canvas.delete('all')
     canvas.create_image(0, 0, anchor=NW, image=cv)
 
 
 def rerender(camera):
+    # print(instances[0].orientation)
     for instance in instances:
         instance.apply_camera_transform(camera)
     clear_canvas()
-    renderScene(instances, canvas)
+    gf.RenderScene(camera, instances, depth_buffer, lights, canvas)
 
 
 def get_values():
-    # Translation values
     ttx = translation_x.get()
     tty = translation_y.get()
     ttz = translation_z.get()
-
-    # Rotation Values
     rtx = rot_x.get()
     rty = rot_y.get()
     rtz = rot_z.get()
-
-    # Scale Value
     sca = scale.get()
 
-    # Converting from 360 degrees
     rtx = (rtx * math.pi) / 180
     rty = (rty * math.pi) / 180
     rtz = (rtz * math.pi) / 180
 
-    # Setting default values if null
-    ttx = float(ttx) if ttx else .1
-    tty = float(tty) if tty else .1
-    ttz = float(ttz) if ttz else .1
+    ttx = float(ttx) if ttx else 0
+    tty = float(tty) if tty else 0
+    ttz = float(ttz) if ttz else 0
     sca = float(sca) if sca else 1
 
     return ttx, tty, ttz, rtx, rty, rtz, sca
@@ -128,78 +142,109 @@ def on_enter(event):
     if event.name == 'enter':
         val = get_values()
         ttx, tty, ttz, rtx, rty, rtz, sca = val
-        #print(val)
+        print(ttx, tty, ttz)
+        # print(val)
         shape = dropdown_var.get()
         if shape == "Cube":
-            dddShape = gf.Instance(cube, gf.Vertex(ttx, tty, ttz), gf.Vertex(rtx, rty, rtz), sca)
+            dddShape = gf.Instance(cube, gf.Vertex(ttx, tty, ttz), gf.Identity4x4, sca)
             instances.append(dddShape)
-            renderInstance(dddShape, canvas)
+            gf.RenderScene(camera, instances, depth_buffer, lights, canvas)
         elif shape == "Pyramid":
             dddShape = gf.Instance(pyramid, gf.Vertex(ttx, tty, ttz), gf.Vertex(rtx, rty, rtz), sca)
             instances.append(dddShape)
-            renderInstance(dddShape, canvas)
+            gf.RenderModel(dddShape, canvas)
+
+
+def on_test(event):
+    if event.name == 'z':
+        # Debugging
+        print("---------------")
+        print("Camera pos: " + str(camera.position.x), str(camera.position.y), str(camera.position.z))
+        print("Camera ori: " + str(camera.orientation.data))
+        print("Instances: " + str(len(instances)))
+        for i in range(len(instances)):
+            print("Instance " + str(i + 1) + " pos: " + str(instances[i].position.x),str(instances[i].position.y),str(instances[i].position.z))
+            print("Instance " + str(i + 1) + " ori: " + str(instances[i].orientation.data))
+        print("Depth Buffer: " + str(depth_buffer))
+        print("Lights: " + str(lights[0].tipo), str(lights[1].direction.x), str(lights[2].intensity))
+        print("---------------")
+    if event.name == 'x':
+        print("added cube")
+        shape = gf.Instance(cube, gf.Vertex(0, 0, 30), gf.Identity4x4, 1)
+        instances.append(shape)
+        gf.RenderScene(camera, instances, depth_buffer, lights, canvas)
+    if event.name == 'f':
+        print("Reload")
+        clear_canvas()
+        gf.RenderScene(camera, instances, depth_buffer, lights, canvas)
+
+
+def on_reload(event):
+    global camera
+    if event.name == 'v':
+        print("move camera 5 up")
+        clear_canvas()
+        camera = gf.Camera(gf.Vertex(0, 5, 0), gf.MakeOYRotationMatrix(0))
+        gf.RenderScene(camera, instances, depth_buffer, lights, canvas)
+    if event.name == 'b':
+        print("move camera 5 down")
+        clear_canvas()
+        camera = gf.Camera(gf.Vertex(0, -5, 0), gf.MakeOYRotationMatrix(0))
+        gf.RenderScene(camera, instances, depth_buffer, lights, canvas)
+    if event.name == 'n':
+        print("move camera 5 right")
+        clear_canvas()
+        camera = gf.Camera(gf.Vertex(5, 0, 0), gf.MakeOYRotationMatrix(0))
+        gf.RenderScene(camera, instances, depth_buffer, lights, canvas)
+    if event.name == 'm':
+        print("move camera 5 left")
+        clear_canvas()
+        camera = gf.Camera(gf.Vertex(-5, 0, 0), gf.MakeOYRotationMatrix(0))
+        gf.RenderScene(camera, instances, depth_buffer, lights, canvas)
+    if event.name == 'c':
+        print("cleared all instances")
+        clear_canvas_instances()
+
 
 def on_arrow_key_pressed(event):
-    cam = gf.Camera(gf.Vertex(0, 0, 0), gf.Vertex(0, 0, 0))
+    cam = gf.Camera(gf.Vertex(0, 0, 0), gf.Identity4x4)
     if event.name == 'up':
-        cam = gf.Camera(gf.Vertex(0, 1, 0), gf.Vertex(0, 0, 0))
+        cam = gf.Camera(gf.Vertex(0, 1, 0), gf.Identity4x4)
         rerender(cam)
     elif event.name == 'down':
-        cam = gf.Camera(gf.Vertex(0, -1, 0), gf.Vertex(0, 0, 0))
+        cam = gf.Camera(gf.Vertex(0, -1, 0), gf.Identity4x4)
         rerender(cam)
     elif event.name == 'left':
-        cam = gf.Camera(gf.Vertex(-1, 0, 0), gf.Vertex(0, 0, 0))
+        cam = gf.Camera(gf.Vertex(-1, 0, 0), gf.Identity4x4)
         rerender(cam)
     elif event.name == 'right':
-        cam = gf.Camera(gf.Vertex(1, 0, 0), gf.Vertex(0, 0, 0))
+        cam = gf.Camera(gf.Vertex(1, 0, 0), gf.Identity4x4)
         rerender(cam)
     elif event.name == ',':
-        cam = gf.Camera(gf.Vertex(0, 0, -1), gf.Vertex(0, 0, 0))
+        cam = gf.Camera(gf.Vertex(0, 0, -1), gf.Identity4x4)
         rerender(cam)
     elif event.name == '.':
-        cam = gf.Camera(gf.Vertex(0, 0, 1), gf.Vertex(0, 0, 0))
+        cam = gf.Camera(gf.Vertex(0, 0, 1), gf.Identity4x4)
         rerender(cam)
     elif event.name == 'j':
-        cam = gf.Camera(gf.Vertex(0, 0, 0), gf.Vertex(0, (math.pi/8), 0))
+        cam = gf.Camera(gf.Vertex(0, 0, 0), gf.Vertex(0, (math.pi / 8), 0))
         rerender(cam)
     elif event.name == 'l':
-        cam = gf.Camera(gf.Vertex(0, 0, 0), gf.Vertex(0, (-math.pi/8), 0))
+        cam = gf.Camera(gf.Vertex(0, 0, 0), gf.Vertex(0, (-math.pi / 8), 0))
         rerender(cam)
     elif event.name == 'i':
-        cam = gf.Camera(gf.Vertex(0, 0, 0), gf.Vertex((math.pi/8), 0, 0))
+        cam = gf.Camera(gf.Vertex(0, 0, 0), gf.Vertex((math.pi / 8), 0, 0))
         rerender(cam)
     elif event.name == 'k':
-        cam = gf.Camera(gf.Vertex(0, 0, 0), gf.Vertex((-math.pi/8), 0, 0))
+        cam = gf.Camera(gf.Vertex(0, 0, 0), gf.Vertex((-math.pi / 8), 0, 0))
         rerender(cam)
     elif event.name == 'u':
-        cam = gf.Camera(gf.Vertex(0, 0, 0), gf.Vertex(0, 0, (-math.pi/8)))
+        cam = gf.Camera(gf.Vertex(0, 0, 0), gf.Vertex(0, 0, (-math.pi / 8)))
         rerender(cam)
     elif event.name == 'o':
-        cam = gf.Camera(gf.Vertex(0, 0, 0), gf.Vertex(0, 0, (math.pi/8)))
+        cam = gf.Camera(gf.Vertex(0, 0, 0), gf.Vertex(0, 0, (math.pi / 8)))
         rerender(cam)
     return camera
-
-
-
-##########################################
-# Instance Functions
-def renderInstance(instance, canvas):
-    projected = []
-    i = 0
-    for V in instance.model.vertices:
-        Vn = gf.MultiplyMV(instance.transform, V)
-        projected.append(gf.projectVertex(Vn, canvas))
-    while i < len(instance.model.triangles):
-        gf.renderTriangle(instance.model.triangles[i], projected, canvas)
-        i += 1
-
-
-def renderScene(instances, canvas):
-    i = 0
-    while i < len(instances):
-        renderInstance(instances[i], canvas)
-        i += 1
-
 
 ##########################################
 # Tkinter root
@@ -219,6 +264,7 @@ canvas.pack(side=tk.LEFT)
 
 cWidth = canvas.winfo_reqwidth()
 cHeight = canvas.winfo_reqheight()
+print("Canvas dimensions")
 print(cWidth, cHeight)
 
 # Options Frame
@@ -283,29 +329,6 @@ scale_label.pack(side=TOP, fill=BOTH, pady=5)
 scale = tk.Entry(frame_scale, width=5)
 scale.pack(side=BOTTOM)
 
-# Lights Frame
-
-frame_lights_labels = tk.Frame()
-frame_lights = tk.Frame()
-
-lights_label = tk.Label(frame_lights_labels, text="Light position")
-lights_label.pack(side=TOP, fill=BOTH, pady=5)
-
-lights_label_x = tk.Label(frame_lights_labels, text="x", width=4)
-lights_label_x.pack(side=LEFT)
-lights_x = tk.Entry(frame_translation, width=5)
-lights_x.pack(side=LEFT)
-
-lights_label_y = tk.Label(frame_lights_labels, text="y", width=4)
-lights_label_y.pack(side=LEFT)
-lights_y = tk.Entry(frame_translation, width=5)
-lights_y.pack(side=LEFT)
-
-lights_label_z = tk.Label(frame_lights_labels, text="z", width=4)
-lights_label_z.pack(side=LEFT)
-lights_z = tk.Entry(frame_translation, width=5)
-lights_z.pack(side=LEFT)
-
 # Info Frame
 frame_info = tk.Frame()
 infolabel = tk.Label(root, text="Press 'enter' to generate polygon")
@@ -315,11 +338,6 @@ infolabel.pack(side=tk.BOTTOM)
 frame_clear = tk.Frame()
 clear_button = tk.Button(root, text="Clear", borderwidth=1, command=clear_canvas_instances, width=10)
 clear_button.pack(side=tk.BOTTOM, padx=5, pady=5)
-
-# # rerender Frame
-# frame_rerender = tk.Frame()
-# rerender_button = tk.Button(root, text="Rerender", borderwidth=1, command=rerender(camera=), width=10)
-# rerender_button.pack(side=tk.BOTTOM, padx=5, pady=5)
 
 # Pack Frames
 frame_options.pack()
@@ -332,12 +350,13 @@ frame_scale.pack()
 frame_clear.pack()
 frame_info.pack()
 
-##########################################
-depth_buffer = np.zeros(canvas.size[0] * canvas.size[1])
+depth_buffer = np.zeros(image.size[0] * image.size[1])
 
-renderScene(instances, canvas)
+gf.RenderScene(camera, instances, depth_buffer, lights, image)
 
 keyboard.on_press(on_enter)
+keyboard.on_press(on_test)
+keyboard.on_press(on_reload)
 keyboard.on_press(on_arrow_key_pressed)
 
 root.mainloop()

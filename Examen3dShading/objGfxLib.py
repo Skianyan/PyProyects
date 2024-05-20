@@ -10,6 +10,12 @@ class Pt:
         self.h = h
 
 
+# A 4x4 matrix.
+class Mat4x4:
+    def __init__(self, data):
+        self.data = data
+
+
 # A 3D vertex.
 class Vertex:
     def __init__(self, x, y, z):
@@ -17,6 +23,8 @@ class Vertex:
         self.y = y
         self.z = z
 
+    def __add__(self, other):
+        return Vertex(self.x + other.x, self.y + other.y, self.z + other.z)
 
 # A 4D vertex (a 3D vertex in homogeneous coordinates).
 class Vertex4:
@@ -55,9 +63,13 @@ class Model:
         self.bounds_radius = bounds_radius
 
 
+# Constantes
+Identity4x4 = Mat4x4([[1, 0, 0, 0], [0, 1, 0, 0], [0, 0, 1, 0], [0, 0, 0, 1]])
+
+
 # An Instance.
 class Instance:
-    def __init__(self, model, position=0, orientation=[0, 0, 0], scale=1.0):
+    def __init__(self, model, position=0, orientation=Identity4x4, scale=1.0):
         # Modelo (Vertices y Triangulos)
         self.model = model
         # Traslación
@@ -70,6 +82,43 @@ class Instance:
         # Matriz de transformación
         self.transform = MultiplyMM4(MakeTranslationMatrix(self.position),
                                      MultiplyMM4(self.orientation, MakeScalingMatrix(self.scale)))
+
+    def apply_camera_transform(self, camera):
+        # Calculate the inverse camera transformation
+        invcam = inv_camera_transform(camera)
+
+        # Apply the inverse camera transformation to the object's transform
+        self.transform = MultiplyMM4(self.transform, invcam)
+
+
+
+def inv_camera_transform(camera):
+    # Calculate inverse translation matrix
+    inv_translation = MakeTranslationMatrix(Vertex(-camera.position.x, -camera.position.y, -camera.position.z))
+
+    # Calculate inverse rotation matrix
+    inv_rotation = MakeRotationMatrix(Vertex(-camera.orientation.data[0][3], -camera.orientation.data[1][3], -camera.orientation.data[2][3]))
+
+
+    # Multiply inverse translation and rotation matrices
+    inv_camera_transform = MultiplyMM4(inv_translation, inv_rotation)
+
+    return inv_camera_transform
+
+
+def MakeRotationMatrix(rotation):
+    MatRx = Mat4x4([[1, 0, 0, 0], [0, math.cos(rotation.x), -math.sin(rotation.x), 0],
+                    [0, math.sin(rotation.x), math.cos(rotation.x), 0], [0, 0, 0, 1]])
+
+    MatRy = Mat4x4([[math.cos(rotation.y), 0, math.sin(rotation.y), 0], [0, 1, 0, 0],
+                    [-math.sin(rotation.y), 0, math.cos(rotation.y), 0], [0, 0, 0, 1]])
+
+    MatRz = Mat4x4(
+        [[math.cos(rotation.z), -math.sin(rotation.z), 0, 0], [math.sin(rotation.z), math.cos(rotation.z), 0, 0],
+         [0, 0, 1, 0], [0, 0, 0, 1]])
+
+    RotMat = MultiplyMM4(MatRx, MultiplyMM4(MatRz, MatRy))
+    return RotMat
 
 
 # The Camera.
@@ -87,12 +136,6 @@ class Plane:
         self.distance = distance
 
 
-# A 4x4 matrix.
-class Mat4x4:
-    def __init__(self, data):
-        self.data = data
-
-
 ####Iluminacion
 
 # The Light
@@ -106,9 +149,6 @@ class Light:
 # ======================================================================
 #    Linear algebra and helpers.
 # ======================================================================
-
-# Constantes
-Identity4x4 = Mat4x4([[1, 0, 0, 0], [0, 1, 0, 0], [0, 0, 1, 0], [0, 0, 0, 1]])
 
 
 # Computes k * vec.
@@ -200,14 +240,29 @@ def Transposed(mat):
     return result
 
 
-# The putPixel() function.
 def putPixel(x, y, color, canvas):
-    x = canvas.width / 2 + x
-    y = canvas.height / 2 - y
+    x = canvas.winfo_reqwidth() / 2 + x
+    y = canvas.winfo_reqheight() / 2 - y
+    if is_rgb(color):
+        color = rgb_to_hex(color[0], color[1], color[2])
+    canvas.create_rectangle(x, y, x + 1, y + 1, outline=color)
 
-    if (x < 0 or x >= canvas.width or y < 0 or y >= canvas.height):
-        return
-    canvas.putpixel((int(x), int(y)), color)
+
+def is_rgb(color):
+    if not isinstance(color, tuple):
+        return False
+    if len(color) != 3:
+        return False
+    for component in color:
+        if not isinstance(component, int):
+            return False
+        if component < 0 or component > 255:
+            return False
+    return True
+
+
+def rgb_to_hex(r, g, b):
+    return '#{:02x}{:02x}{:02x}'.format(r, g, b)
 
 
 def interpolate(i0, d0, i1, d1):
@@ -375,15 +430,16 @@ def UnProjectVertex(x, y, inv_z, canvas):
 def viewportToCanvas(P2d, canvas):
     viewport_size = 1
 
-    return Pt(int(P2d.x * canvas.width / viewport_size) | 0, int(P2d.y * canvas.height / viewport_size) | 0)
+    return Pt(int(P2d.x * canvas.winfo_reqwidth() / viewport_size) | 0,
+              int(P2d.y * canvas.winfo_reqheight() / viewport_size) | 0)
 
 
 def CanvasToViewport(p2d, canvas):
     viewport_size = 1
 
     return Pt(
-        (p2d.x * viewport_size / canvas.width),
-        (p2d.y * viewport_size / canvas.height),
+        (p2d.x * viewport_size / canvas.winfo_reqwidth()),
+        (p2d.y * viewport_size / canvas.winfo_reqheight()),
         None
     )
 
@@ -401,13 +457,13 @@ def renderObject(vertices, triangles, canvas):
 # ======================================================================
 
 def UpdateDepthBufferIfCloser(canvas, depth_buffer, x, y, inv_z):
-    x = canvas.width / 2 + (x)
-    y = canvas.height / 2 - (y) - 1
+    x = canvas.winfo_reqwidth() / 2 + (x)
+    y = canvas.winfo_reqheight() / 2 - (y) - 1
 
-    if (x < 0 or x >= canvas.width or y < 0 or y >= canvas.height):
+    if (x < 0 or x >= canvas.winfo_reqwidth() or y < 0 or y >= canvas.winfo_reqheight()):
         return False
 
-    offset = x + canvas.width * y
+    offset = x + canvas.winfo_reqwidth() * y
     if (depth_buffer[int(offset)] == None or depth_buffer[int(offset)] < inv_z):
         depth_buffer[int(offset)] = inv_z
         return True
@@ -581,12 +637,12 @@ def renderTriangleDepthG(triangle, vertices, projected, depth_buffer, camera, li
 
         for x in range(xl, xr):
             inv_z = zscan[x - xl]
-            if (UpdateDepthBufferIfCloser(canvas, depth_buffer, x, y, inv_z)):
+            if UpdateDepthBufferIfCloser(canvas, depth_buffer, x, y, inv_z):
                 intensity = iscan[x - xl];
                 pixelcolor = multiplyColor(triangle.color, intensity)
                 putPixel(x, y, pixelcolor, canvas)
 
-
+# Phong Lighting
 def renderTriangleDepthP(triangle, vertices, projected, depth_buffer, camera, lights, orientation, canvas):
     # Sort by projected point Y.
     indexes = SortedVertexIndexes(triangle.indexes, projected)
@@ -603,7 +659,7 @@ def renderTriangleDepthP(triangle, vertices, projected, depth_buffer, camera, li
     # Backface culling.
     vertex_to_camera = Multiply(-1, vertices[triangle.indexes[0]])
     # vertex = Multiply(-1,vertices[triangle.indexes[0]])
-    if (Dot(vertex_to_camera, normal) <= 0):
+    if Dot(vertex_to_camera, normal) <= 0:
         return
 
     # Get attribute values (X, 1/Z) at the vertices.
@@ -629,7 +685,7 @@ def renderTriangleDepthP(triangle, vertices, projected, depth_buffer, camera, li
 
     # Determine which is left and which is right.
     m = int(len(x02) / 2)
-    if (x02[m] < x012[m]):
+    if x02[m] < x012[m]:
 
         x_left, x_right = x02, x012
         # profundidad
@@ -696,8 +752,7 @@ def RenderModel(model, depth_buffer, camera, lights, orientation, canvas):
     for i in range(0, len(model.triangles)):
         # renderTriangle(model.triangles[i], projected, canvas)
         # renderTriangleDepthG(model.triangles[i], model.vertices, projected, depth_buffer, camera, lights, orientation, canvas)
-        renderTriangleDepthP(model.triangles[i], model.vertices, projected, depth_buffer, camera, lights, orientation,
-                             canvas)
+        renderTriangleDepthP(model.triangles[i], model.vertices, projected, depth_buffer, camera, lights, orientation, canvas)
 
 
 # Clipping

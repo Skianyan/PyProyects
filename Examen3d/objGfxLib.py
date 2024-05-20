@@ -27,7 +27,8 @@ class Instance:
         self.orientation = orientation
         self.scale = scale
 
-        self.transform = MultiplyMM4(MakeTranslationMatrix(self.position), MultiplyMM4(MakeScalingMatrix(self.scale), MultiplyMM4(identity4x4, MakeRotationMatrix(self.orientation))))
+        self.transform = MultiplyMM4(MakeTranslationMatrix(self.position), MultiplyMM4(MakeScalingMatrix(self.scale),
+                        MultiplyMM4(identity4x4, MakeRotationMatrix(self.orientation))))
 
     def apply_camera_transform(self, camera):
         # Calculate the inverse camera transformation
