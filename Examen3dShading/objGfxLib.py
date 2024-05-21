@@ -97,13 +97,22 @@ def inv_camera_transform(camera):
     inv_translation = MakeTranslationMatrix(Vertex(-camera.position.x, -camera.position.y, -camera.position.z))
 
     # Calculate inverse rotation matrix
-    inv_rotation = MakeRotationMatrix(Vertex(-camera.orientation.data[0][3], -camera.orientation.data[1][3], -camera.orientation.data[2][3]))
+    #print(camera.orientation.data)
+    #print(camera.orientation.data[0][0], camera.orientation.data[0][1], camera.orientation.data[0][2],camera.orientation.data[0][3])
+    #print(camera.orientation.data[1][0], camera.orientation.data[1][1], camera.orientation.data[1][2],camera.orientation.data[1][3])
+    #print(camera.orientation.data[2][0], camera.orientation.data[2][1], camera.orientation.data[2][2],camera.orientation.data[2][3])
+    #print(camera.orientation.data[3][0], camera.orientation.data[3][1], camera.orientation.data[3][2],camera.orientation.data[3][3])
+    #inv_rotation = MakeRotationMatrix(Vertex(-camera.orientation.data[0][3], -camera.orientation.data[1][3], -camera.orientation.data[2][3]))
 
+    inv_rotation = Mat4x4([[camera.orientation.data[0][0], camera.orientation.data[0][1], camera.orientation.data[0][2],camera.orientation.data[0][3]],
+    [camera.orientation.data[1][0], camera.orientation.data[1][1], camera.orientation.data[1][2],camera.orientation.data[1][3]],
+    [camera.orientation.data[2][0], camera.orientation.data[2][1], camera.orientation.data[2][2],camera.orientation.data[2][3]],
+    [camera.orientation.data[3][0], camera.orientation.data[3][1], camera.orientation.data[3][2],camera.orientation.data[3][3]]])
 
     # Multiply inverse translation and rotation matrices
-    inv_camera_transform = MultiplyMM4(inv_translation, inv_rotation)
+    inv_camera = MultiplyMM4(inv_translation, inv_rotation)
 
-    return inv_camera_transform
+    return inv_camera
 
 
 def MakeRotationMatrix(rotation):

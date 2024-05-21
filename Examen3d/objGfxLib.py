@@ -111,6 +111,7 @@ def inv_camera_transform(camera):
     inv_translation = MakeTranslationMatrix(Vertex(-camera.position.x, -camera.position.y, -camera.position.z))
 
     # Calculate inverse rotation matrix
+    print(camera.orientation.x,camera.orientation.y,camera.orientation.z)
     inv_rotation = MakeRotationMatrix(Vertex(-camera.orientation.x, -camera.orientation.y, -camera.orientation.z))
 
     # Multiply inverse translation and rotation matrices

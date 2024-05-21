@@ -111,6 +111,8 @@ def clear_canvas():
 
 def rerender(camera):
     # print(instances[0].orientation)
+    global depth_buffer
+    depth_buffer = np.zeros(image.size[0] * image.size[1])
     for instance in instances:
         instance.apply_camera_transform(camera)
     clear_canvas()
@@ -146,7 +148,7 @@ def on_enter(event):
         # print(val)
         shape = dropdown_var.get()
         if shape == "Cube":
-            dddShape = gf.Instance(cube, gf.Vertex(ttx, tty, ttz), gf.Identity4x4, sca)
+            dddShape = gf.Instance(cube, gf.Vertex(ttx, tty, ttz), gf.MakeRotationMatrix(gf.Vertex(rtx,rty,rtz)), sca)
             instances.append(dddShape)
             gf.RenderScene(camera, instances, depth_buffer, lights, canvas)
         elif shape == "Pyramid":
@@ -157,6 +159,8 @@ def on_enter(event):
 
 def on_test(event):
     if event.name == 'z':
+        global depth_buffer
+        global camera
         # Debugging
         print("---------------")
         print("Camera pos: " + str(camera.position.x), str(camera.position.y), str(camera.position.z))
@@ -176,38 +180,38 @@ def on_test(event):
     if event.name == 'f':
         print("Reload")
         clear_canvas()
+        depth_buffer = np.zeros(image.size[0] * image.size[1])
         gf.RenderScene(camera, instances, depth_buffer, lights, canvas)
 
 
 def on_reload(event):
-    global camera
     if event.name == 'v':
         print("move camera 5 up")
         clear_canvas()
-        camera = gf.Camera(gf.Vertex(0, 5, 0), gf.MakeOYRotationMatrix(0))
-        gf.RenderScene(camera, instances, depth_buffer, lights, canvas)
+        cam = gf.Camera(gf.Vertex(0, 5, 0), gf.MakeOYRotationMatrix(0))
+        rerender(cam)
     if event.name == 'b':
         print("move camera 5 down")
         clear_canvas()
-        camera = gf.Camera(gf.Vertex(0, -5, 0), gf.MakeOYRotationMatrix(0))
-        gf.RenderScene(camera, instances, depth_buffer, lights, canvas)
+        cam = gf.Camera(gf.Vertex(0, -5, 0), gf.MakeOYRotationMatrix(0))
+        rerender(cam)
     if event.name == 'n':
         print("move camera 5 right")
         clear_canvas()
-        camera = gf.Camera(gf.Vertex(5, 0, 0), gf.MakeOYRotationMatrix(0))
-        gf.RenderScene(camera, instances, depth_buffer, lights, canvas)
+        cam = gf.Camera(gf.Vertex(5, 0, 0), gf.MakeOYRotationMatrix(0))
+        rerender(cam)
     if event.name == 'm':
         print("move camera 5 left")
         clear_canvas()
-        camera = gf.Camera(gf.Vertex(-5, 0, 0), gf.MakeOYRotationMatrix(0))
-        gf.RenderScene(camera, instances, depth_buffer, lights, canvas)
+        cam = gf.Camera(gf.Vertex(-5, 0, 0), gf.MakeOYRotationMatrix(0))
+        rerender(cam)
     if event.name == 'c':
         print("cleared all instances")
+        print(gf.MakeRotationMatrix(gf.Vertex(0, (math.pi / 8), 0)).data)
         clear_canvas_instances()
 
 
 def on_arrow_key_pressed(event):
-    cam = gf.Camera(gf.Vertex(0, 0, 0), gf.Identity4x4)
     if event.name == 'up':
         cam = gf.Camera(gf.Vertex(0, 1, 0), gf.Identity4x4)
         rerender(cam)
@@ -221,30 +225,30 @@ def on_arrow_key_pressed(event):
         cam = gf.Camera(gf.Vertex(1, 0, 0), gf.Identity4x4)
         rerender(cam)
     elif event.name == ',':
-        cam = gf.Camera(gf.Vertex(0, 0, -1), gf.Identity4x4)
+        cam = gf.Camera(gf.Vertex(0, 0, -5), gf.Identity4x4)
         rerender(cam)
     elif event.name == '.':
-        cam = gf.Camera(gf.Vertex(0, 0, 1), gf.Identity4x4)
+        cam = gf.Camera(gf.Vertex(0, 0, 5), gf.Identity4x4)
         rerender(cam)
     elif event.name == 'j':
-        cam = gf.Camera(gf.Vertex(0, 0, 0), gf.Vertex(0, (math.pi / 8), 0))
+        cam = gf.Camera(gf.Vertex(0, 0, 0), gf.MakeRotationMatrix(gf.Vertex(0, (math.pi / 8), 0)))
         rerender(cam)
     elif event.name == 'l':
-        cam = gf.Camera(gf.Vertex(0, 0, 0), gf.Vertex(0, (-math.pi / 8), 0))
+        cam = gf.Camera(gf.Vertex(0, 0, 0), gf.MakeRotationMatrix(gf.Vertex(0, (-math.pi / 8), 0)))
         rerender(cam)
     elif event.name == 'i':
-        cam = gf.Camera(gf.Vertex(0, 0, 0), gf.Vertex((math.pi / 8), 0, 0))
+        cam = gf.Camera(gf.Vertex(0, 0, 0), gf.MakeRotationMatrix(gf.Vertex((math.pi / 8), 0, 0)))
         rerender(cam)
     elif event.name == 'k':
-        cam = gf.Camera(gf.Vertex(0, 0, 0), gf.Vertex((-math.pi / 8), 0, 0))
+        cam = gf.Camera(gf.Vertex(0, 0, 0), gf.MakeRotationMatrix(gf.Vertex((-math.pi / 8), 0, 0)))
         rerender(cam)
     elif event.name == 'u':
-        cam = gf.Camera(gf.Vertex(0, 0, 0), gf.Vertex(0, 0, (-math.pi / 8)))
+        cam = gf.Camera(gf.Vertex(0, 0, 0), gf.MakeRotationMatrix(gf.Vertex(0, 0, (-math.pi / 8))))
         rerender(cam)
     elif event.name == 'o':
-        cam = gf.Camera(gf.Vertex(0, 0, 0), gf.Vertex(0, 0, (math.pi / 8)))
+        cam = gf.Camera(gf.Vertex(0, 0, 0), gf.MakeRotationMatrix(gf.Vertex(0, 0, (math.pi / 8))))
         rerender(cam)
-    return camera
+
 
 ##########################################
 # Tkinter root
