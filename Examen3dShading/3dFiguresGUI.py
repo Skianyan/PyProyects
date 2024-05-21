@@ -44,26 +44,51 @@ PURPLE = (186, 85, 211)
 CYAN = (0, 255, 255)
 
 ##############################################################################################
+
 # Define Pyramid
-# Define top Vertex
+# Definir el vértice superior
 vTp = gf.Vertex(0, 0.5, 0)
 
-# Define Bottom Vertexes
+# Definir los vértices inferiores
 vAp = gf.Vertex(-0.5, -0.5, -0.5)
 vBp = gf.Vertex(0.5, -0.5, -0.5)
 vCp = gf.Vertex(0.5, -0.5, 0.5)
 vDp = gf.Vertex(-0.5, -0.5, 0.5)
 
-# Add vertexes to list
-pyrVertices = []
-pyrVertices.append(vTp), pyrVertices.append(vAp), pyrVertices.append(vBp), pyrVertices.append(vCp), pyrVertices.append(
-    vDp)
+# Agregar vértices a la lista
+pyrVertices = [vTp, vAp, vBp, vCp, vDp]
 
-# Define Triangles
-pyrTriangles = [(0, 1, 2, RED), (0, 2, 3, RED), (0, 3, 4, RED),
-                (0, 3, 1, YELLOW), (1, 3, 4, YELLOW), (1, 2, 4, CYAN)]
+# Definir triángulos
+pyrTriangles = [
+    (0, 1, 2, RED),
+    (0, 2, 3, RED),
+    (0, 3, 4, RED),
+    (0, 4, 1, YELLOW),
+    (1, 3, 4, YELLOW),
+    (1, 2, 3, CYAN)
+]
 
-pyramid = gf.Model(pyrVertices, pyrTriangles, gf.Vertex(0, 0, 0), math.sqrt(3))
+normals = [
+    gf.calculate_normal(pyrVertices[0], pyrVertices[1], pyrVertices[2]),
+    gf.calculate_normal(pyrVertices[0], pyrVertices[2], pyrVertices[3]),
+    gf.calculate_normal(pyrVertices[0], pyrVertices[3], pyrVertices[4]),
+    gf.calculate_normal(pyrVertices[0], pyrVertices[4], pyrVertices[1]),
+    gf.calculate_normal(pyrVertices[1], pyrVertices[2], pyrVertices[3]),
+    gf.calculate_normal(pyrVertices[1], pyrVertices[3], pyrVertices[4])
+]
+
+# Crear los triángulos con sus normales y colores
+pyrTrianglesWithNormals = [
+    gf.Triangle([0, 1, 2], RED, [normals[0], normals[0], normals[0]]),
+    gf.Triangle([0, 2, 3], RED, [normals[1], normals[1], normals[1]]),
+    gf.Triangle([0, 3, 4], RED, [normals[2], normals[2], normals[2]]),
+    gf.Triangle([0, 4, 1], YELLOW, [normals[3], normals[3], normals[3]]),
+    gf.Triangle([1, 2, 3], YELLOW, [normals[4], normals[4], normals[4]]),
+    gf.Triangle([1, 3, 4], CYAN, [normals[5], normals[5], normals[5]])
+]
+
+# Definir el modelo de la pirámide
+pyramid = gf.Model(pyrVertices, pyrTrianglesWithNormals, gf.Vertex(0, 0, 0), math.sqrt(3))
 
 # Define Cube
 vertices = [
@@ -95,6 +120,40 @@ triangles = [
 cube = gf.Model(vertices, triangles, gf.Vertex(0, 0, 0), math.sqrt(3))
 
 
+def GenerateSphere(divs, color):
+    vertices = []
+    triangles = []
+
+    delta_angle = 2.0 * math.pi / divs
+
+    # Generate vertices and normals.
+    for d in range(0, divs + 1):
+        y = (2.0 / divs) * (d - divs / 2)
+        radius = math.sqrt(1.0 - y * y)
+        for i in range(0, divs):
+            vertex = gf.Vertex(radius * math.cos(i * delta_angle), y, radius * math.sin(i * delta_angle))
+            vertices.append(vertex)
+
+    # Generate triangles.
+    for d in range(0, divs):
+        for i in range(0, divs):
+            i0 = d * divs + i
+            i1 = (d + 1) * divs + (i + 1) % divs
+            i2 = divs * d + (i + 1) % divs
+            tri0 = [i0, i1, i2]
+            tri1 = [i0, i0 + divs, i1]
+            triangles.append(gf.Triangle(tri0, color, [vertices[tri0[0]], vertices[tri0[1]], vertices[tri0[2]]]))
+            triangles.append(gf.Triangle(tri1, color, [vertices[tri1[0]], vertices[tri1[1]], vertices[tri1[2]]]))
+
+    return gf.Model(vertices, triangles, gf.Vertex(0, 0, 0), 1.0)
+
+
+sphere = GenerateSphere(25, GREEN)
+
+
+# instance = gl.Instance(sphere, Vertex(x, y, z), rotation, scale)
+
+
 ##########################################
 # Canvas Commands
 
@@ -116,7 +175,27 @@ def rerender(newcam):
     for instance in instances:
         instance.apply_camera_transform(newcam)
     clear_canvas()
-    gf.RenderScene(newcam, instances, depth_buffer, lights, canvas)
+    gf.RenderScene(camera, instances, depth_buffer, lights, canvas)
+
+
+def relight():
+    lx, ly, lz = getlight()
+    global depth_buffer
+    depth_buffer = np.zeros(image.size[0] * image.size[1])
+    clear_canvas()
+    newlight = [gf.Light(LT_AMBIENT, 0.2), gf.Light(LT_DIRECTIONAL, 0.2, gf.Vertex(-1, 0, 1)),
+              gf.Light(LT_POINT, 0.6, gf.Vertex(lx, ly, lz))]
+    gf.RenderScene(camera, instances, depth_buffer, newlight, canvas)
+
+
+def getlight():
+    lx = light_x.get()
+    ly = light_y.get()
+    lz = light_z.get()
+    lx = float(lx) if lx else 0
+    ly = float(ly) if ly else 0
+    lz = float(lz) if lz else 0
+    return lx, ly, lz
 
 
 def get_values():
@@ -148,11 +227,17 @@ def on_enter(event):
         # print(val)
         shape = dropdown_var.get()
         if shape == "Cube":
-            dddShape = gf.Instance(cube, gf.Vertex(ttx, tty, ttz), gf.MakeRotationMatrix(gf.Vertex(rtx,rty,rtz)), sca)
+            dddShape = gf.Instance(cube, gf.Vertex(ttx, tty, ttz), gf.MakeRotationMatrix(gf.Vertex(rtx, rty, rtz)), sca)
             instances.append(dddShape)
             gf.RenderScene(camera, instances, depth_buffer, lights, canvas)
         elif shape == "Pyramid":
-            dddShape = gf.Instance(pyramid, gf.Vertex(ttx, tty, ttz), gf.MakeRotationMatrix(gf.Vertex(rtx,rty,rtz)), sca)
+            dddShape = gf.Instance(pyramid, gf.Vertex(ttx, tty, ttz), gf.MakeRotationMatrix(gf.Vertex(rtx, rty, rtz)),
+                                   sca)
+            instances.append(dddShape)
+            gf.RenderScene(camera, instances, depth_buffer, lights, canvas)
+        elif shape == "Sphere":
+            dddShape = gf.Instance(sphere, gf.Vertex(ttx, tty, ttz), gf.MakeRotationMatrix(gf.Vertex(rtx, rty, rtz)),
+                                   sca)
             instances.append(dddShape)
             gf.RenderScene(camera, instances, depth_buffer, lights, canvas)
 
@@ -167,7 +252,8 @@ def on_test(event):
         print("Camera ori: " + str(camera.orientation.data))
         print("Instances: " + str(len(instances)))
         for i in range(len(instances)):
-            print("Instance " + str(i + 1) + " pos: " + str(instances[i].position.x),str(instances[i].position.y),str(instances[i].position.z))
+            print("Instance " + str(i + 1) + " pos: " + str(instances[i].position.x), str(instances[i].position.y),
+                  str(instances[i].position.z))
             print("Instance " + str(i + 1) + " ori: " + str(instances[i].orientation.data))
         print("Depth Buffer: " + str(depth_buffer))
         print("Lights: " + str(lights[0].tipo), str(lights[1].direction.x), str(lights[2].intensity))
@@ -183,6 +269,9 @@ def on_test(event):
         clear_canvas()
         depth_buffer = np.zeros(image.size[0] * image.size[1])
         gf.RenderScene(camera, instances, depth_buffer, lights, canvas)
+    if event.name == 'g':
+        print("Reload Lights")
+        relight()
 
 
 def on_reload(event):
@@ -280,7 +369,7 @@ selector_label.pack(side=tk.TOP, pady=2, padx=5)
 
 dropdown_var = tk.StringVar(frame_options)
 dropdown_var.set("Cube")
-dropdown_menu = tk.OptionMenu(frame_options, dropdown_var, "Cube", "Pyramid")
+dropdown_menu = tk.OptionMenu(frame_options, dropdown_var, "Cube", "Pyramid", "Sphere")
 dropdown_menu.pack(side=tk.BOTTOM, fill=X, pady=5)
 
 # Translation
@@ -334,6 +423,29 @@ scale_label.pack(side=TOP, fill=BOTH, pady=5)
 scale = tk.Entry(frame_scale, width=5)
 scale.pack(side=BOTTOM)
 
+# Lights
+
+frame_light_labels = tk.Frame()
+frame_light = tk.Frame()
+
+rotation_label = tk.Label(frame_light_labels, text="Light source")
+rotation_label.pack(side=TOP, fill=BOTH, pady=5)
+
+light_label_x = tk.Label(frame_light_labels, text="x", width=4)
+light_label_x.pack(side=LEFT)
+light_x = tk.Entry(frame_light, width=5)
+light_x.pack(side=LEFT)
+
+light_label_y = tk.Label(frame_light_labels, text="y", width=4)
+light_label_y.pack(side=LEFT)
+light_y = tk.Entry(frame_light, width=5)
+light_y.pack(side=LEFT)
+
+light_label_z = tk.Label(frame_light_labels, text="z", width=4)
+light_label_z.pack(side=LEFT)
+light_z = tk.Entry(frame_light, width=5)
+light_z.pack(side=LEFT)
+
 # Info Frame
 frame_info = tk.Frame()
 infolabel = tk.Label(root, text="Press 'enter' to generate polygon")
@@ -352,6 +464,8 @@ frame_rotx.pack()
 frame_roty.pack()
 frame_rotz.pack()
 frame_scale.pack()
+frame_light_labels.pack()
+frame_light.pack()
 frame_clear.pack()
 frame_info.pack()
 

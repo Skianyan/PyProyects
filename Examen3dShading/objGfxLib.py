@@ -190,6 +190,15 @@ def Add(v1, v2):
 def Magnitude(v1):
     return math.sqrt(Dot(v1, v1))
 
+# Función para calcular la normal de un triángulo
+def calculate_normal(v1, v2, v3):
+    # Vector desde v1 a v2
+    vec1 = Vertex(v2.x - v1.x, v2.y - v1.y, v2.z - v1.z)
+    # Vector desde v1 a v3
+    vec2 = Vertex(v3.x - v1.x, v3.y - v1.y, v3.z - v1.z)
+    # Producto cruzado
+    normal = Cross(vec1, vec2)
+    return normal
 
 # Makes a transform matrix for a rotation around the OY axis.
 def MakeOYRotationMatrix(degrees):
