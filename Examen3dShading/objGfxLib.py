@@ -86,7 +86,6 @@ class Instance:
     def apply_camera_transform(self, camera):
         # Calculate the inverse camera transformation
         invcam = inv_camera_transform(camera)
-
         # Apply the inverse camera transformation to the object's transform
         self.transform = MultiplyMM4(self.transform, invcam)
 
@@ -104,16 +103,20 @@ def inv_camera_transform(camera):
     #print(camera.orientation.data[3][0], camera.orientation.data[3][1], camera.orientation.data[3][2],camera.orientation.data[3][3])
     #inv_rotation = MakeRotationMatrix(Vertex(-camera.orientation.data[0][3], -camera.orientation.data[1][3], -camera.orientation.data[2][3]))
 
-    inv_rotation = Mat4x4([[camera.orientation.data[0][0], camera.orientation.data[0][1], camera.orientation.data[0][2],camera.orientation.data[0][3]],
-    [camera.orientation.data[1][0], camera.orientation.data[1][1], camera.orientation.data[1][2],camera.orientation.data[1][3]],
-    [camera.orientation.data[2][0], camera.orientation.data[2][1], camera.orientation.data[2][2],camera.orientation.data[2][3]],
-    [camera.orientation.data[3][0], camera.orientation.data[3][1], camera.orientation.data[3][2],camera.orientation.data[3][3]]])
+    inv_rotation = Transposed(camera.orientation)
 
     # Multiply inverse translation and rotation matrices
     inv_camera = MultiplyMM4(inv_translation, inv_rotation)
+    print(inv_camera.data)
 
     return inv_camera
 
+def NegateMatrix(mat):
+    NMat = Mat4x4([[-mat.data[0][0], -mat.data[0][1], -mat.data[0][2],-mat.data[0][3]],
+    [-mat.data[1][0], mat.data[1][1], -mat.data[1][2],-mat.data[1][3]],
+    [-mat.data[2][0], mat.data[2][1], -mat.data[2][2],-mat.data[2][3]],
+    [-mat.data[3][0], mat.data[3][1], -mat.data[3][2],-mat.data[3][3]]])
+    return NMat
 
 def MakeRotationMatrix(rotation):
     MatRx = Mat4x4([[1, 0, 0, 0], [0, math.cos(rotation.x), -math.sin(rotation.x), 0],

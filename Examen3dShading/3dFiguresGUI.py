@@ -15,7 +15,7 @@ height = 501
 instances = []
 
 global camera
-camera = gf.Camera(gf.Vertex(0, 0, 0), gf.MakeOYRotationMatrix(0))
+camera = gf.Camera(gf.Vertex(0, 0, 0), gf.Identity4x4)
 
 s2 = math.sqrt(2)
 camera.clipping_planes = [
@@ -109,14 +109,14 @@ def clear_canvas():
     canvas.create_image(0, 0, anchor=NW, image=cv)
 
 
-def rerender(camera):
+def rerender(newcam):
     # print(instances[0].orientation)
     global depth_buffer
     depth_buffer = np.zeros(image.size[0] * image.size[1])
     for instance in instances:
-        instance.apply_camera_transform(camera)
+        instance.apply_camera_transform(newcam)
     clear_canvas()
-    gf.RenderScene(camera, instances, depth_buffer, lights, canvas)
+    gf.RenderScene(newcam, instances, depth_buffer, lights, canvas)
 
 
 def get_values():
@@ -152,9 +152,9 @@ def on_enter(event):
             instances.append(dddShape)
             gf.RenderScene(camera, instances, depth_buffer, lights, canvas)
         elif shape == "Pyramid":
-            dddShape = gf.Instance(pyramid, gf.Vertex(ttx, tty, ttz), gf.Vertex(rtx, rty, rtz), sca)
+            dddShape = gf.Instance(pyramid, gf.Vertex(ttx, tty, ttz), gf.MakeRotationMatrix(gf.Vertex(rtx,rty,rtz)), sca)
             instances.append(dddShape)
-            gf.RenderModel(dddShape, canvas)
+            gf.RenderScene(camera, instances, depth_buffer, lights, canvas)
 
 
 def on_test(event):
@@ -174,6 +174,7 @@ def on_test(event):
         print("---------------")
     if event.name == 'x':
         print("added cube")
+        depth_buffer = np.zeros(image.size[0] * image.size[1])
         shape = gf.Instance(cube, gf.Vertex(0, 0, 30), gf.Identity4x4, 1)
         instances.append(shape)
         gf.RenderScene(camera, instances, depth_buffer, lights, canvas)
