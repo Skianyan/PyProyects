@@ -95,7 +95,6 @@ class Instance:
         # Apply the inverse camera transformation to the object's transform
         self.transform = MultiplyMM4(self.transform, invcam)
 
-# The Camera.
 class Camera:
     def __init__(self, position, orientation):
         self.position = position
@@ -103,14 +102,13 @@ class Camera:
         self.clipping_planes = []
 
 
-# A Clipping Plane.
+# Clipping Plane.
 class Plane:
     def __init__(self, normal, distance):
         self.normal = normal
         self.distance = distance
 
 
-# The Light
 class Light:
     def __init__(self, tipo, intensity, direction=Vertex(-1, 0, 1)):
         self.tipo = tipo
