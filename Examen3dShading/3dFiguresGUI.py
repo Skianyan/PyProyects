@@ -9,8 +9,8 @@ import objGfxLib as gf
 from math import floor
 from PIL import Image, ImageDraw, ImageTk
 
-width = 501
-height = 501
+width = 551
+height = 551
 
 instances = []
 
@@ -32,7 +32,7 @@ LT_POINT = 1;
 LT_DIRECTIONAL = 2;
 
 lights = [gf.Light(LT_AMBIENT, 0.2), gf.Light(LT_DIRECTIONAL, 0.2, gf.Vertex(-1, 0, 1)),
-          gf.Light(LT_POINT, 0.6, gf.Vertex(2, 0, 4))]
+          gf.Light(LT_POINT, 0.6, gf.Vertex(0, 0, 0))]
 
 ##############################################################################################
 # Define color constants
@@ -119,36 +119,7 @@ triangles = [
 # Definir el modelo de un cubo
 cube = gf.Model(vertices, triangles, gf.Vertex(0, 0, 0), math.sqrt(3))
 
-
-def GenerateSphere(divs, color):
-    vertices = []
-    triangles = []
-
-    delta_angle = 2.0 * math.pi / divs
-
-    # Generate vertices and normals.
-    for d in range(0, divs + 1):
-        y = (2.0 / divs) * (d - divs / 2)
-        radius = math.sqrt(1.0 - y * y)
-        for i in range(0, divs):
-            vertex = gf.Vertex(radius * math.cos(i * delta_angle), y, radius * math.sin(i * delta_angle))
-            vertices.append(vertex)
-
-    # Generate triangles.
-    for d in range(0, divs):
-        for i in range(0, divs):
-            i0 = d * divs + i
-            i1 = (d + 1) * divs + (i + 1) % divs
-            i2 = divs * d + (i + 1) % divs
-            tri0 = [i0, i1, i2]
-            tri1 = [i0, i0 + divs, i1]
-            triangles.append(gf.Triangle(tri0, color, [vertices[tri0[0]], vertices[tri0[1]], vertices[tri0[2]]]))
-            triangles.append(gf.Triangle(tri1, color, [vertices[tri1[0]], vertices[tri1[1]], vertices[tri1[2]]]))
-
-    return gf.Model(vertices, triangles, gf.Vertex(0, 0, 0), 1.0)
-
-
-sphere = GenerateSphere(25, GREEN)
+sphere = gf.GenerateSphere(25, GREEN)
 
 
 # instance = gl.Instance(sphere, Vertex(x, y, z), rotation, scale)
@@ -169,7 +140,6 @@ def clear_canvas():
 
 
 def rerender(newcam):
-    # print(instances[0].orientation)
     global depth_buffer
     depth_buffer = np.zeros(image.size[0] * image.size[1])
     for instance in instances:
@@ -184,7 +154,7 @@ def relight():
     depth_buffer = np.zeros(image.size[0] * image.size[1])
     clear_canvas()
     newlight = [gf.Light(LT_AMBIENT, 0.2), gf.Light(LT_DIRECTIONAL, 0.2, gf.Vertex(-1, 0, 1)),
-              gf.Light(LT_POINT, 0.6, gf.Vertex(lx, ly, lz))]
+                gf.Light(LT_POINT, 0.6, gf.Vertex(lx, ly, lz))]
     gf.RenderScene(camera, instances, depth_buffer, newlight, canvas)
 
 
@@ -205,6 +175,7 @@ def get_values():
     rtx = rot_x.get()
     rty = rot_y.get()
     rtz = rot_z.get()
+
     sca = scale.get()
 
     rtx = (rtx * math.pi) / 180
@@ -223,21 +194,21 @@ def on_enter(event):
     if event.name == 'enter':
         val = get_values()
         ttx, tty, ttz, rtx, rty, rtz, sca = val
-        print(ttx, tty, ttz)
-        # print(val)
-        shape = dropdown_var.get()
+        shape = selector_var.get()
+        rendtype = render_var.get()
         if shape == "Cube":
-            dddShape = gf.Instance(cube, gf.Vertex(ttx, tty, ttz), gf.MakeRotationMatrix(gf.Vertex(rtx, rty, rtz)), sca)
+            dddShape = gf.Instance(cube, gf.Vertex(ttx, tty, ttz), gf.MakeRotationMatrix(gf.Vertex(rtx, rty, rtz)),
+                                   sca, rendtype)
             instances.append(dddShape)
             gf.RenderScene(camera, instances, depth_buffer, lights, canvas)
         elif shape == "Pyramid":
             dddShape = gf.Instance(pyramid, gf.Vertex(ttx, tty, ttz), gf.MakeRotationMatrix(gf.Vertex(rtx, rty, rtz)),
-                                   sca)
+                                   sca, rendtype)
             instances.append(dddShape)
             gf.RenderScene(camera, instances, depth_buffer, lights, canvas)
         elif shape == "Sphere":
             dddShape = gf.Instance(sphere, gf.Vertex(ttx, tty, ttz), gf.MakeRotationMatrix(gf.Vertex(rtx, rty, rtz)),
-                                   sca)
+                                   sca, rendtype)
             instances.append(dddShape)
             gf.RenderScene(camera, instances, depth_buffer, lights, canvas)
 
@@ -261,7 +232,7 @@ def on_test(event):
     if event.name == 'x':
         print("added cube")
         depth_buffer = np.zeros(image.size[0] * image.size[1])
-        shape = gf.Instance(cube, gf.Vertex(0, 0, 30), gf.Identity4x4, 1)
+        shape = gf.Instance(cube, gf.Vertex(0, 0, 30), gf.Identity4x4, 1, "Flat")
         instances.append(shape)
         gf.RenderScene(camera, instances, depth_buffer, lights, canvas)
     if event.name == 'f':
@@ -272,29 +243,6 @@ def on_test(event):
     if event.name == 'g':
         print("Reload Lights")
         relight()
-
-
-def on_reload(event):
-    if event.name == 'v':
-        print("move camera 5 up")
-        clear_canvas()
-        cam = gf.Camera(gf.Vertex(0, 5, 0), gf.MakeOYRotationMatrix(0))
-        rerender(cam)
-    if event.name == 'b':
-        print("move camera 5 down")
-        clear_canvas()
-        cam = gf.Camera(gf.Vertex(0, -5, 0), gf.MakeOYRotationMatrix(0))
-        rerender(cam)
-    if event.name == 'n':
-        print("move camera 5 right")
-        clear_canvas()
-        cam = gf.Camera(gf.Vertex(5, 0, 0), gf.MakeOYRotationMatrix(0))
-        rerender(cam)
-    if event.name == 'm':
-        print("move camera 5 left")
-        clear_canvas()
-        cam = gf.Camera(gf.Vertex(-5, 0, 0), gf.MakeOYRotationMatrix(0))
-        rerender(cam)
     if event.name == 'c':
         print("cleared all instances")
         print(gf.MakeRotationMatrix(gf.Vertex(0, (math.pi / 8), 0)).data)
@@ -302,16 +250,16 @@ def on_reload(event):
 
 
 def on_arrow_key_pressed(event):
-    if event.name == 'up':
+    if event.name == 'w':
         cam = gf.Camera(gf.Vertex(0, 1, 0), gf.Identity4x4)
         rerender(cam)
-    elif event.name == 'down':
+    elif event.name == 's':
         cam = gf.Camera(gf.Vertex(0, -1, 0), gf.Identity4x4)
         rerender(cam)
-    elif event.name == 'left':
+    elif event.name == 'a':
         cam = gf.Camera(gf.Vertex(-1, 0, 0), gf.Identity4x4)
         rerender(cam)
-    elif event.name == 'right':
+    elif event.name == 'd':
         cam = gf.Camera(gf.Vertex(1, 0, 0), gf.Identity4x4)
         rerender(cam)
     elif event.name == ',':
@@ -352,25 +300,27 @@ cv = ImageTk.PhotoImage(image)
 
 # Root Frame
 # Create a Canvas widget to display the image
-canvas = Canvas(root, width=width, height=500)
+canvas = Canvas(root, width=550, height=550)
 canvas.create_image(0, 0, anchor=NW, image=cv)
 canvas.pack(side=tk.LEFT)
 
 cWidth = canvas.winfo_reqwidth()
 cHeight = canvas.winfo_reqheight()
-print("Canvas dimensions")
-print(cWidth, cHeight)
+
+# print("Canvas dimensions")
+# print(cWidth, cHeight)
 
 # Options Frame
 frame_options = tk.Frame()
 
+# Shape Selector
 selector_label = tk.Label(master=frame_options, text="Select a Shape to Add", height=2, width=18)
 selector_label.pack(side=tk.TOP, pady=2, padx=5)
 
-dropdown_var = tk.StringVar(frame_options)
-dropdown_var.set("Cube")
-dropdown_menu = tk.OptionMenu(frame_options, dropdown_var, "Cube", "Pyramid", "Sphere")
-dropdown_menu.pack(side=tk.BOTTOM, fill=X, pady=5)
+selector_var = tk.StringVar(frame_options)
+selector_var.set("Cube")
+selector_menu = tk.OptionMenu(frame_options, selector_var, "Cube", "Pyramid", "Sphere")
+selector_menu.pack(side=tk.BOTTOM, fill=X, pady=5)
 
 # Translation
 
@@ -446,6 +396,17 @@ light_label_z.pack(side=LEFT)
 light_z = tk.Entry(frame_light, width=5)
 light_z.pack(side=LEFT)
 
+# Rendering Selector
+render_options = tk.Frame()
+
+render_label = tk.Label(master=render_options, text="Select a Render Method", height=2, width=18)
+render_label.pack(side=tk.TOP, pady=2, padx=5)
+
+render_var = tk.StringVar(frame_options)
+render_var.set("Phong")
+render_menu = tk.OptionMenu(render_options, render_var, "Phong", "Gouraud", "Flat")
+render_menu.pack(side=tk.BOTTOM, fill=X, pady=5)
+
 # Info Frame
 frame_info = tk.Frame()
 infolabel = tk.Label(root, text="Press 'enter' to generate polygon")
@@ -458,6 +419,7 @@ clear_button.pack(side=tk.BOTTOM, padx=5, pady=5)
 
 # Pack Frames
 frame_options.pack()
+render_options.pack()
 frame_translation_labels.pack()
 frame_translation.pack()
 frame_rotx.pack()
@@ -475,7 +437,6 @@ gf.RenderScene(camera, instances, depth_buffer, lights, image)
 
 keyboard.on_press(on_enter)
 keyboard.on_press(on_test)
-keyboard.on_press(on_reload)
 keyboard.on_press(on_arrow_key_pressed)
 
 root.mainloop()

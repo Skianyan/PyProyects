@@ -1,6 +1,9 @@
 import math
 import numpy as np
 
+# ======================================================================
+#    Classes
+# ======================================================================
 
 # A Point.
 class Pt:
@@ -16,6 +19,10 @@ class Mat4x4:
         self.data = data
 
 
+# Identity Matrix Constant
+Identity4x4 = Mat4x4([[1, 0, 0, 0], [0, 1, 0, 0], [0, 0, 1, 0], [0, 0, 0, 1]])
+
+
 # A 3D vertex.
 class Vertex:
     def __init__(self, x, y, z):
@@ -25,6 +32,7 @@ class Vertex:
 
     def __add__(self, other):
         return Vertex(self.x + other.x, self.y + other.y, self.z + other.z)
+
 
 # A 4D vertex (a 3D vertex in homogeneous coordinates).
 class Vertex4:
@@ -63,13 +71,9 @@ class Model:
         self.bounds_radius = bounds_radius
 
 
-# Constantes
-Identity4x4 = Mat4x4([[1, 0, 0, 0], [0, 1, 0, 0], [0, 0, 1, 0], [0, 0, 0, 1]])
-
-
 # An Instance.
 class Instance:
-    def __init__(self, model, position=0, orientation=Identity4x4, scale=1.0):
+    def __init__(self, model, position=0, orientation=Identity4x4, scale=1.0, rendertype="phong"):
         # Modelo (Vertices y Triangulos)
         self.model = model
         # Traslación
@@ -78,6 +82,8 @@ class Instance:
         self.orientation = orientation
         # Escala
         self.scale = scale
+        # RenderType
+        self.rendertype = rendertype
 
         # Matriz de transformación
         self.transform = MultiplyMM4(MakeTranslationMatrix(self.position),
@@ -88,50 +94,6 @@ class Instance:
         invcam = inv_camera_transform(camera)
         # Apply the inverse camera transformation to the object's transform
         self.transform = MultiplyMM4(self.transform, invcam)
-
-
-
-def inv_camera_transform(camera):
-    # Calculate inverse translation matrix
-    inv_translation = MakeTranslationMatrix(Vertex(-camera.position.x, -camera.position.y, -camera.position.z))
-
-    # Calculate inverse rotation matrix
-    #print(camera.orientation.data)
-    #print(camera.orientation.data[0][0], camera.orientation.data[0][1], camera.orientation.data[0][2],camera.orientation.data[0][3])
-    #print(camera.orientation.data[1][0], camera.orientation.data[1][1], camera.orientation.data[1][2],camera.orientation.data[1][3])
-    #print(camera.orientation.data[2][0], camera.orientation.data[2][1], camera.orientation.data[2][2],camera.orientation.data[2][3])
-    #print(camera.orientation.data[3][0], camera.orientation.data[3][1], camera.orientation.data[3][2],camera.orientation.data[3][3])
-    #inv_rotation = MakeRotationMatrix(Vertex(-camera.orientation.data[0][3], -camera.orientation.data[1][3], -camera.orientation.data[2][3]))
-
-    inv_rotation = Transposed(camera.orientation)
-
-    # Multiply inverse translation and rotation matrices
-    inv_camera = MultiplyMM4(inv_translation, inv_rotation)
-    print(inv_camera.data)
-
-    return inv_camera
-
-def NegateMatrix(mat):
-    NMat = Mat4x4([[-mat.data[0][0], -mat.data[0][1], -mat.data[0][2],-mat.data[0][3]],
-    [-mat.data[1][0], mat.data[1][1], -mat.data[1][2],-mat.data[1][3]],
-    [-mat.data[2][0], mat.data[2][1], -mat.data[2][2],-mat.data[2][3]],
-    [-mat.data[3][0], mat.data[3][1], -mat.data[3][2],-mat.data[3][3]]])
-    return NMat
-
-def MakeRotationMatrix(rotation):
-    MatRx = Mat4x4([[1, 0, 0, 0], [0, math.cos(rotation.x), -math.sin(rotation.x), 0],
-                    [0, math.sin(rotation.x), math.cos(rotation.x), 0], [0, 0, 0, 1]])
-
-    MatRy = Mat4x4([[math.cos(rotation.y), 0, math.sin(rotation.y), 0], [0, 1, 0, 0],
-                    [-math.sin(rotation.y), 0, math.cos(rotation.y), 0], [0, 0, 0, 1]])
-
-    MatRz = Mat4x4(
-        [[math.cos(rotation.z), -math.sin(rotation.z), 0, 0], [math.sin(rotation.z), math.cos(rotation.z), 0, 0],
-         [0, 0, 1, 0], [0, 0, 0, 1]])
-
-    RotMat = MultiplyMM4(MatRx, MultiplyMM4(MatRz, MatRy))
-    return RotMat
-
 
 # The Camera.
 class Camera:
@@ -148,8 +110,6 @@ class Plane:
         self.distance = distance
 
 
-####Iluminacion
-
 # The Light
 class Light:
     def __init__(self, tipo, intensity, direction=Vertex(-1, 0, 1)):
@@ -159,9 +119,64 @@ class Light:
 
 
 # ======================================================================
-#    Linear algebra and helpers.
+#    Linear algebra and Matrixes
 # ======================================================================
+def interpolate(i0, d0, i1, d1):
+    if (i0 == i1):
+        return [d0]
 
+    values = []
+    a = (d1 - d0) / (i1 - i0)
+    d = d0
+    for i in range(i0, i1 + 1):
+        values.append(d)
+        d += a
+
+    return values
+
+
+def calculate_normal(v1, v2, v3):
+    # Vector desde v1 a v2
+    vec1 = Vertex(v2.x - v1.x, v2.y - v1.y, v2.z - v1.z)
+    # Vector desde v1 a v3
+    vec2 = Vertex(v3.x - v1.x, v3.y - v1.y, v3.z - v1.z)
+    # Producto cruzado
+    normal = Cross(vec1, vec2)
+    return normal
+
+
+def SortedVertexIndexes(vertex_indexes, projected):
+    indexes = [0, 1, 2]
+
+    if (projected[vertex_indexes[indexes[1]]].y < projected[vertex_indexes[indexes[0]]].y):
+        indexes[0], indexes[1] = indexes[1], indexes[0]
+
+    if (projected[vertex_indexes[indexes[2]]].y < projected[vertex_indexes[indexes[0]]].y):
+        indexes[0], indexes[2] = indexes[2], indexes[0]
+
+    if (projected[vertex_indexes[indexes[2]]].y < projected[vertex_indexes[indexes[1]]].y):
+        indexes[1], indexes[2] = indexes[2], indexes[1]
+
+    return indexes
+
+
+def ComputeTriangleNormal(v0, v1, v2):
+    v0v1 = Add(v1, Multiply(-1, v0))
+    v0v2 = Add(v2, Multiply(-1, v0))
+    return Cross(v0v1, v0v2)
+
+
+def EdgeInterpolate(y0, v0, y1, v1, y2, v2):
+    v01 = interpolate(y0, v0, y1, v1)
+    v12 = interpolate(y1, v1, y2, v2)
+    v02 = interpolate(y0, v0, y2, v2)
+    v01.pop()
+    v012 = v01 + v12
+    return v02, v012
+
+# ======================================================================
+#    Matrixes
+# ======================================================================
 
 # Computes k * vec.
 def Multiply(k, vec):
@@ -190,17 +205,7 @@ def Add(v1, v2):
 def Magnitude(v1):
     return math.sqrt(Dot(v1, v1))
 
-# Función para calcular la normal de un triángulo
-def calculate_normal(v1, v2, v3):
-    # Vector desde v1 a v2
-    vec1 = Vertex(v2.x - v1.x, v2.y - v1.y, v2.z - v1.z)
-    # Vector desde v1 a v3
-    vec2 = Vertex(v3.x - v1.x, v3.y - v1.y, v3.z - v1.z)
-    # Producto cruzado
-    normal = Cross(vec1, vec2)
-    return normal
 
-# Makes a transform matrix for a rotation around the OY axis.
 def MakeOYRotationMatrix(degrees):
     cos = math.cos(degrees * math.pi / 180.0)
     sin = math.sin(degrees * math.pi / 180.0)
@@ -209,6 +214,34 @@ def MakeOYRotationMatrix(degrees):
                    [0, 1, 0, 0],
                    [sin, 0, cos, 0],
                    [0, 0, 0, 1]])
+
+
+def inv_camera_transform(camera):
+    # Calculate inverse translation matrix
+    inv_translation = MakeTranslationMatrix(Vertex(-camera.position.x, -camera.position.y, -camera.position.z))
+
+    # Calculate inverse rotation matrix
+    inv_rotation = Transposed(camera.orientation)
+
+    # Multiply inverse translation and rotation matrices
+    inv_camera = MultiplyMM4(inv_translation, inv_rotation)
+
+    return inv_camera
+
+
+def MakeRotationMatrix(rotation):
+    MatRx = Mat4x4([[1, 0, 0, 0], [0, math.cos(rotation.x), -math.sin(rotation.x), 0],
+                    [0, math.sin(rotation.x), math.cos(rotation.x), 0], [0, 0, 0, 1]])
+
+    MatRy = Mat4x4([[math.cos(rotation.y), 0, math.sin(rotation.y), 0], [0, 1, 0, 0],
+                    [-math.sin(rotation.y), 0, math.cos(rotation.y), 0], [0, 0, 0, 1]])
+
+    MatRz = Mat4x4(
+        [[math.cos(rotation.z), -math.sin(rotation.z), 0, 0], [math.sin(rotation.z), math.cos(rotation.z), 0, 0],
+         [0, 0, 1, 0], [0, 0, 0, 1]])
+
+    RotMat = MultiplyMM4(MatRx, MultiplyMM4(MatRz, MatRy))
+    return RotMat
 
 
 # Makes a transform matrix for a translation.
@@ -260,14 +293,9 @@ def Transposed(mat):
 
     return result
 
-
-def putPixel(x, y, color, canvas):
-    x = canvas.winfo_reqwidth() / 2 + x
-    y = canvas.winfo_reqheight() / 2 - y
-    if is_rgb(color):
-        color = rgb_to_hex(color[0], color[1], color[2])
-    canvas.create_rectangle(x, y, x + 1, y + 1, outline=color)
-
+# ======================================================================
+#    Helpers
+# ======================================================================
 
 def is_rgb(color):
     if not isinstance(color, tuple):
@@ -286,18 +314,79 @@ def rgb_to_hex(r, g, b):
     return '#{:02x}{:02x}{:02x}'.format(r, g, b)
 
 
-def interpolate(i0, d0, i1, d1):
-    if (i0 == i1):
-        return [d0]
+def projectVertex(V, canvas):
+    projection_plane_z = 1
+    xp = V.x * projection_plane_z / V.z
+    yp = V.y * projection_plane_z / V.z
+    Pp = Pt(xp, yp)
 
-    values = []
-    a = (d1 - d0) / (i1 - i0)
-    d = d0
-    for i in range(i0, i1 + 1):
-        values.append(d)
-        d += a
+    return viewportToCanvas(Pp, canvas)
 
-    return values
+
+def UnProjectVertex(x, y, inv_z, canvas):
+    projection_plane_z = 1
+    oz = 1.0 / inv_z
+    ux = x * oz / projection_plane_z
+    uy = y * oz / projection_plane_z
+    p2d = CanvasToViewport(Pt(ux, uy, None), canvas)
+    return Vertex(p2d.x, p2d.y, oz)
+
+
+def clamp(value):
+    if (value < 0):
+        return 0
+    if (value > 255):
+        return 255
+
+    return value
+
+
+def addColor(c1, c2):
+    return [clamp(c1[0] + c2[0]), clamp(c1[1] + c2[1]), clamp(c1[2] + c2[2])]
+
+
+def multiplyColor(color, k):
+    return (int(clamp(color[0] * k)), int(clamp(color[1] * k)), int(clamp(color[2] * k)))
+
+
+def GenerateSphere(divs, color):
+    vertices = []
+    triangles = []
+
+    delta_angle = 2.0 * math.pi / divs
+
+    # Generate vertices and normals.
+    for d in range(0, divs + 1):
+        y = (2.0 / divs) * (d - divs / 2)
+        radius = math.sqrt(1.0 - y * y)
+        for i in range(0, divs):
+            vertex = Vertex(radius * math.cos(i * delta_angle), y, radius * math.sin(i * delta_angle))
+            vertices.append(vertex)
+
+    # Generate triangles.
+    for d in range(0, divs):
+        for i in range(0, divs):
+            i0 = d * divs + i
+            i1 = (d + 1) * divs + (i + 1) % divs
+            i2 = divs * d + (i + 1) % divs
+            tri0 = [i0, i1, i2]
+            tri1 = [i0, i0 + divs, i1]
+            triangles.append(Triangle(tri0, color, [vertices[tri0[0]], vertices[tri0[1]], vertices[tri0[2]]]))
+            triangles.append(Triangle(tri1, color, [vertices[tri1[0]], vertices[tri1[1]], vertices[tri1[2]]]))
+
+    return Model(vertices, triangles, Vertex(0, 0, 0), 1.0)
+
+
+# ======================================================================
+#    Basic drawing functions
+# ======================================================================
+
+def putPixel(x, y, color, canvas):
+    x = canvas.winfo_reqwidth() / 2 + x
+    y = canvas.winfo_reqheight() / 2 - y
+    if is_rgb(color):
+        color = rgb_to_hex(color[0], color[1], color[2])
+    canvas.create_rectangle(x, y, x + 1, y + 1, outline=color)
 
 
 def drawLine(p0, p1, color, canvas):
@@ -430,24 +519,6 @@ def drawShadedTriangle(P0, P1, P2, color, canvas):
             putPixel(x, y, shaded_color, canvas)
 
 
-def projectVertex(V, canvas):
-    projection_plane_z = 1
-    xp = V.x * projection_plane_z / V.z
-    yp = V.y * projection_plane_z / V.z
-    Pp = Pt(xp, yp)
-
-    return viewportToCanvas(Pp, canvas)
-
-
-def UnProjectVertex(x, y, inv_z, canvas):
-    projection_plane_z = 1
-    oz = 1.0 / inv_z
-    ux = x * oz / projection_plane_z
-    uy = y * oz / projection_plane_z
-    p2d = CanvasToViewport(Pt(ux, uy, None), canvas)
-    return Vertex(p2d.x, p2d.y, oz)
-
-
 def viewportToCanvas(P2d, canvas):
     viewport_size = 1
 
@@ -465,18 +536,6 @@ def CanvasToViewport(p2d, canvas):
     )
 
 
-def renderObject(vertices, triangles, canvas):
-    projected = []
-    for V in vertices:
-        projected.append(projectVertex(V, canvas))
-    for T in triangles:
-        renderTriangle(T, projected, canvas)
-
-
-# ======================================================================
-#    Depth buffer.
-# ======================================================================
-
 def UpdateDepthBufferIfCloser(canvas, depth_buffer, x, y, inv_z):
     x = canvas.winfo_reqwidth() / 2 + (x)
     y = canvas.winfo_reqheight() / 2 - (y) - 1
@@ -492,6 +551,20 @@ def UpdateDepthBufferIfCloser(canvas, depth_buffer, x, y, inv_z):
     return False
 
 
+
+
+# ======================================================================
+#    Render Types
+# ======================================================================
+# Wireframe
+def renderObject(vertices, triangles, canvas):
+    projected = []
+    for V in vertices:
+        projected.append(projectVertex(V, canvas))
+    for T in triangles:
+        renderTriangle(T, projected, canvas)
+
+
 def renderTriangle(triangle, projected, canvas):
     # Get attribute values (X, 1/Z) at the vertices.
     p0 = projected[triangle.indexes[0]]
@@ -501,37 +574,7 @@ def renderTriangle(triangle, projected, canvas):
     # drawWireframeTriangle(p0,p1,p2,triangle.color,canvas)
     drawFilledTriangle(p0, p1, p2, triangle.color, canvas)
 
-
-def SortedVertexIndexes(vertex_indexes, projected):
-    indexes = [0, 1, 2]
-
-    if (projected[vertex_indexes[indexes[1]]].y < projected[vertex_indexes[indexes[0]]].y):
-        indexes[0], indexes[1] = indexes[1], indexes[0]
-
-    if (projected[vertex_indexes[indexes[2]]].y < projected[vertex_indexes[indexes[0]]].y):
-        indexes[0], indexes[2] = indexes[2], indexes[0]
-
-    if (projected[vertex_indexes[indexes[2]]].y < projected[vertex_indexes[indexes[1]]].y):
-        indexes[1], indexes[2] = indexes[2], indexes[1]
-
-    return indexes
-
-
-def ComputeTriangleNormal(v0, v1, v2):
-    v0v1 = Add(v1, Multiply(-1, v0))
-    v0v2 = Add(v2, Multiply(-1, v0))
-    return Cross(v0v1, v0v2)
-
-
-def EdgeInterpolate(y0, v0, y1, v1, y2, v2):
-    v01 = interpolate(y0, v0, y1, v1)
-    v12 = interpolate(y1, v1, y2, v2)
-    v02 = interpolate(y0, v0, y2, v2)
-    v01.pop()
-    v012 = v01 + v12
-    return v02, v012
-
-
+# Flat Shading
 def renderTriangleDepthF(triangle, vertices, projected, depth_buffer, camera, lights, orientation, canvas):
     # Sort by projected point Y.
     indexes = SortedVertexIndexes(triangle.indexes, projected)
@@ -589,6 +632,7 @@ def renderTriangleDepthF(triangle, vertices, projected, depth_buffer, camera, li
                 putPixel(x, y, pixelcolor, canvas)
 
 
+# Gouraud Shading
 def renderTriangleDepthG(triangle, vertices, projected, depth_buffer, camera, lights, orientation, canvas):
     # Sort by projected point Y.
     indexes = SortedVertexIndexes(triangle.indexes, projected)
@@ -663,7 +707,8 @@ def renderTriangleDepthG(triangle, vertices, projected, depth_buffer, camera, li
                 pixelcolor = multiplyColor(triangle.color, intensity)
                 putPixel(x, y, pixelcolor, canvas)
 
-# Phong Lighting
+
+# Phong Shading
 def renderTriangleDepthP(triangle, vertices, projected, depth_buffer, camera, lights, orientation, canvas):
     # Sort by projected point Y.
     indexes = SortedVertexIndexes(triangle.indexes, projected)
@@ -755,6 +800,9 @@ def renderTriangleDepthP(triangle, vertices, projected, depth_buffer, camera, li
                 pixelcolor = multiplyColor(triangle.color, intensity)
                 putPixel(x, y, pixelcolor, canvas)
 
+# ======================================================================
+#    Rendering
+# ======================================================================
 
 def RenderScene(camera, instances, depth_buffer, lights, canvas):
     cameraMatrix = MultiplyMM4(Transposed(camera.orientation), MakeTranslationMatrix(Multiply(-1, camera.position)))
@@ -763,22 +811,30 @@ def RenderScene(camera, instances, depth_buffer, lights, canvas):
         transform = MultiplyMM4(cameraMatrix, instances[i].transform)
         clipped = TransformAndClip(camera.clipping_planes, instances[i].model, instances[i].scale, transform)
         if (clipped != None):
-            RenderModel(clipped, depth_buffer, camera, lights, instances[i].orientation, canvas)
+            RenderModel(clipped, depth_buffer, camera, lights, instances[i].orientation, canvas,
+                        instances[i].rendertype)
 
 
-def RenderModel(model, depth_buffer, camera, lights, orientation, canvas):
+def RenderModel(model, depth_buffer, camera, lights, orientation, canvas, rendertype):
     projected = []
     for i in range(0, len(model.vertices)):
         projected.append(projectVertex(Vertex4(model.vertices[i]), canvas))
     for i in range(0, len(model.triangles)):
-        # renderTriangle(model.triangles[i], projected, canvas)
-        # renderTriangleDepthG(model.triangles[i], model.vertices, projected, depth_buffer, camera, lights, orientation, canvas)
-        renderTriangleDepthP(model.triangles[i], model.vertices, projected, depth_buffer, camera, lights, orientation, canvas)
+        if rendertype == "Phong":
+            renderTriangleDepthP(model.triangles[i], model.vertices, projected, depth_buffer, camera, lights,
+                                 orientation, canvas)
+        if rendertype == "Gouraud":
+            renderTriangleDepthG(model.triangles[i], model.vertices, projected, depth_buffer, camera, lights,
+                                 orientation, canvas)
 
+        if rendertype == "Flat":
+            renderTriangleDepthF(model.triangles[i], model.vertices, projected, depth_buffer, camera, lights,
+                                 orientation, canvas)
 
-# Clipping
+# ======================================================================
+#    Clipping
+# ======================================================================
 
-# Clips a triangle against a plane. Adds output to triangles and vertices.
 def ClipTriangle(triangle, plane, triangles, vertices):
     v0 = vertices[triangle.indexes[0]]
     v1 = vertices[triangle.indexes[1]]
@@ -829,8 +885,6 @@ def TransformAndClip(clipping_planes, model, scale, transform):
     return Model(vertices, triangles, center, model.bounds_radius)
 
 
-####------Flat Shading---###
-
 def ComputeIllumination(p, normal, camera, lights):
     # A Light.
     LT_AMBIENT = 0;
@@ -875,47 +929,3 @@ def ComputeIllumination(p, normal, camera, lights):
     return illumination
 
 
-def clamp(value):
-    if (value < 0):
-        return 0
-    if (value > 255):
-        return 255
-
-    return value
-
-
-# Adds two colors.
-def addColor(c1, c2):
-    return [clamp(c1[0] + c2[0]), clamp(c1[1] + c2[1]), clamp(c1[2] + c2[2])]
-
-
-def multiplyColor(color, k):
-    return (int(clamp(color[0] * k)), int(clamp(color[1] * k)), int(clamp(color[2] * k)))
-
-
-def GenerateSphere(divs, color):
-    vertices = []
-    triangles = []
-
-    delta_angle = 2.0 * math.pi / divs
-
-    # Generate vertices and normals.
-    for d in range(0, divs + 1):
-        y = (2.0 / divs) * (d - divs / 2)
-        radius = math.sqrt(1.0 - y * y)
-        for i in range(0, divs):
-            vertex = Vertex(radius * math.cos(i * delta_angle), y, radius * math.sin(i * delta_angle))
-            vertices.append(vertex)
-
-    # Generate triangles.
-    for d in range(0, divs):
-        for i in range(0, divs):
-            i0 = d * divs + i
-            i1 = (d + 1) * divs + (i + 1) % divs
-            i2 = divs * d + (i + 1) % divs
-            tri0 = [i0, i1, i2]
-            tri1 = [i0, i0 + divs, i1]
-            triangles.append(Triangle(tri0, color, [vertices[tri0[0]], vertices[tri0[1]], vertices[tri0[2]]]))
-            triangles.append(Triangle(tri1, color, [vertices[tri1[0]], vertices[tri1[1]], vertices[tri1[2]]]))
-
-    return Model(vertices, triangles, Vertex(0, 0, 0), 1.0)

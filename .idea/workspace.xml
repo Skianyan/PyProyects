@@ -5,9 +5,26 @@
   </component>
   <component name="ChangeListManager">
     <list default="true" id="0ad71cb2-d837-4ad5-8ff9-86274556a593" name="Changes" comment="shadedpolygonworks">
+      <change beforePath="$PROJECT_DIR$/.idea/misc.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/misc.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/3dCanvas.py" beforeDir="false" afterPath="$PROJECT_DIR$/firstProject/3dCanvas.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/3dInstancedFigures.py" beforeDir="false" afterPath="$PROJECT_DIR$/firstProject/3dInstancedFigures.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/Examen3dShading/3dFiguresGUI.py" beforeDir="false" afterPath="$PROJECT_DIR$/Examen3dShading/3dFiguresGUI.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/Examen3dShading/objGfxLib.py" beforeDir="false" afterPath="$PROJECT_DIR$/Examen3dShading/objGfxLib.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Old/Polygon.py" beforeDir="false" afterPath="$PROJECT_DIR$/Polygon/Polygon.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Old/example_image.png" beforeDir="false" afterPath="$PROJECT_DIR$/Polygon/example_image.png" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Old/parabola.py" beforeDir="false" afterPath="$PROJECT_DIR$/Polygon/parabola.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Old/pixel.py" beforeDir="false" afterPath="$PROJECT_DIR$/Polygon/pixel.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/carasocultas/carasOcultas.py" beforeDir="false" afterPath="$PROJECT_DIR$/carasOcultas/carasOcultas.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/carasocultas/graflibC.py" beforeDir="false" afterPath="$PROJECT_DIR$/carasOcultas/graflibC.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/dodecahedron.py" beforeDir="false" afterPath="$PROJECT_DIR$/firstProject/dodecahedron.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/gfxlib.py" beforeDir="false" afterPath="$PROJECT_DIR$/firstProject/gfxlib.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/interactiveCanvas.py" beforeDir="false" afterPath="$PROJECT_DIR$/firstProject/interactiveCanvas.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/logictests.py" beforeDir="false" afterPath="$PROJECT_DIR$/firstProject/logictests.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/profTests/graphlib.py" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/profTests/instancesClp.py" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/test.py" beforeDir="false" afterPath="$PROJECT_DIR$/firstProject/test.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/test1.py" beforeDir="false" afterPath="$PROJECT_DIR$/firstProject/test1.py" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -72,6 +89,7 @@
       <recent name="C:\Users\ricar\Documents\GitHub\Project\PyProyects\exampleCodes" />
     </key>
     <key name="MoveFile.RECENT_KEYS">
+      <recent name="C:\Users\ricar\Documents\GitHub\Project\PyProyects\firstProject" />
       <recent name="C:\Users\ricar\OneDrive\Documentos\GitHub\PyProyects\carasocultas" />
       <recent name="C:\Users\ricar\Documents\GitHub\Project\PyProyects\Examen3d" />
     </key>
@@ -79,7 +97,6 @@
   <component name="RunManager">
     <configuration name="3dCanvas" type="PythonConfigurationType" factoryName="Python" temporary="true" nameIsGenerated="true">
       <module name="Py" />
-      <option name="ENV_FILES" value="" />
       <option name="INTERPRETER_OPTIONS" value="" />
       <option name="PARENT_ENVS" value="true" />
       <envs>
@@ -90,7 +107,7 @@
       <option name="IS_MODULE_SDK" value="true" />
       <option name="ADD_CONTENT_ROOTS" value="true" />
       <option name="ADD_SOURCE_ROOTS" value="true" />
-      <option name="SCRIPT_NAME" value="$PROJECT_DIR$/3dCanvas.py" />
+      <option name="SCRIPT_NAME" value="C:\Users\ricar\Documents\GitHub\Project\PyProyects\firstProject\3dCanvas.py" />
       <option name="PARAMETERS" value="" />
       <option name="SHOW_COMMAND_LINE" value="false" />
       <option name="EMULATE_TERMINAL" value="false" />
@@ -101,7 +118,6 @@
     </configuration>
     <configuration name="dodecahedron" type="PythonConfigurationType" factoryName="Python" temporary="true" nameIsGenerated="true">
       <module name="Py" />
-      <option name="ENV_FILES" value="" />
       <option name="INTERPRETER_OPTIONS" value="" />
       <option name="PARENT_ENVS" value="true" />
       <envs>
@@ -112,7 +128,7 @@
       <option name="IS_MODULE_SDK" value="true" />
       <option name="ADD_CONTENT_ROOTS" value="true" />
       <option name="ADD_SOURCE_ROOTS" value="true" />
-      <option name="SCRIPT_NAME" value="$PROJECT_DIR$/dodecahedron.py" />
+      <option name="SCRIPT_NAME" value="C:\Users\ricar\Documents\GitHub\Project\PyProyects\firstProject\dodecahedron.py" />
       <option name="PARAMETERS" value="" />
       <option name="SHOW_COMMAND_LINE" value="false" />
       <option name="EMULATE_TERMINAL" value="false" />
@@ -123,7 +139,6 @@
     </configuration>
     <configuration name="interactiveCanvas" type="PythonConfigurationType" factoryName="Python" temporary="true" nameIsGenerated="true">
       <module name="Py" />
-      <option name="ENV_FILES" value="" />
       <option name="INTERPRETER_OPTIONS" value="" />
       <option name="PARENT_ENVS" value="true" />
       <envs>
@@ -134,7 +149,7 @@
       <option name="IS_MODULE_SDK" value="true" />
       <option name="ADD_CONTENT_ROOTS" value="true" />
       <option name="ADD_SOURCE_ROOTS" value="true" />
-      <option name="SCRIPT_NAME" value="C:\Users\ricar\Documents\GitHub\Project\PyProyects\interactiveCanvas.py" />
+      <option name="SCRIPT_NAME" value="C:\Users\ricar\Documents\GitHub\Project\PyProyects\firstProject\interactiveCanvas.py" />
       <option name="PARAMETERS" value="" />
       <option name="SHOW_COMMAND_LINE" value="false" />
       <option name="EMULATE_TERMINAL" value="false" />
@@ -145,7 +160,6 @@
     </configuration>
     <configuration name="test" type="PythonConfigurationType" factoryName="Python" temporary="true" nameIsGenerated="true">
       <module name="Py" />
-      <option name="ENV_FILES" value="" />
       <option name="INTERPRETER_OPTIONS" value="" />
       <option name="PARENT_ENVS" value="true" />
       <envs>
@@ -156,7 +170,7 @@
       <option name="IS_MODULE_SDK" value="true" />
       <option name="ADD_CONTENT_ROOTS" value="true" />
       <option name="ADD_SOURCE_ROOTS" value="true" />
-      <option name="SCRIPT_NAME" value="$PROJECT_DIR$/test.py" />
+      <option name="SCRIPT_NAME" value="C:\Users\ricar\Documents\GitHub\Project\PyProyects\firstProject\test.py" />
       <option name="PARAMETERS" value="" />
       <option name="SHOW_COMMAND_LINE" value="false" />
       <option name="EMULATE_TERMINAL" value="false" />
@@ -167,7 +181,6 @@
     </configuration>
     <configuration name="test1" type="PythonConfigurationType" factoryName="Python" temporary="true" nameIsGenerated="true">
       <module name="Py" />
-      <option name="ENV_FILES" value="" />
       <option name="INTERPRETER_OPTIONS" value="" />
       <option name="PARENT_ENVS" value="true" />
       <envs>
@@ -178,7 +191,7 @@
       <option name="IS_MODULE_SDK" value="true" />
       <option name="ADD_CONTENT_ROOTS" value="true" />
       <option name="ADD_SOURCE_ROOTS" value="true" />
-      <option name="SCRIPT_NAME" value="$PROJECT_DIR$/test1.py" />
+      <option name="SCRIPT_NAME" value="C:\Users\ricar\Documents\GitHub\Project\PyProyects\firstProject\test1.py" />
       <option name="PARAMETERS" value="" />
       <option name="SHOW_COMMAND_LINE" value="false" />
       <option name="EMULATE_TERMINAL" value="false" />
