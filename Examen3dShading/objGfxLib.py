@@ -1,6 +1,7 @@
 import math
 import numpy as np
 
+
 # ======================================================================
 #    Classes
 # ======================================================================
@@ -11,6 +12,14 @@ class Pt:
         self.x = x
         self.y = y
         self.h = h
+
+
+class Pixelcache:
+    def __init__(self, x, y, color, canvas):
+        self.x = x
+        self.y = y
+        self.color = color
+        self.canvas = canvas
 
 
 # A 4x4 matrix.
@@ -95,6 +104,7 @@ class Instance:
         # Apply the inverse camera transformation to the object's transform
         self.transform = MultiplyMM4(self.transform, invcam)
 
+
 class Camera:
     def __init__(self, position, orientation):
         self.position = position
@@ -172,6 +182,7 @@ def EdgeInterpolate(y0, v0, y1, v1, y2, v2):
     v012 = v01 + v12
     return v02, v012
 
+
 # ======================================================================
 #    Matrixes
 # ======================================================================
@@ -202,16 +213,6 @@ def Add(v1, v2):
 # Computes vector magnitude.
 def Magnitude(v1):
     return math.sqrt(Dot(v1, v1))
-
-
-def MakeOYRotationMatrix(degrees):
-    cos = math.cos(degrees * math.pi / 180.0)
-    sin = math.sin(degrees * math.pi / 180.0)
-
-    return Mat4x4([[cos, 0, -sin, 0],
-                   [0, 1, 0, 0],
-                   [sin, 0, cos, 0],
-                   [0, 0, 0, 1]])
 
 
 def inv_camera_transform(camera):
@@ -291,9 +292,23 @@ def Transposed(mat):
 
     return result
 
+
 # ======================================================================
 #    Helpers
-# ======================================================================
+# ======================================================================\
+def dot_product(matrix1, matrix2):
+    if not isinstance(matrix1, Mat4x4) or not isinstance(matrix2, Mat4x4):
+        raise ValueError("Both operands must be Mat4x4 instances")
+
+    result = [[0] * 4 for _ in range(4)]
+
+    for i in range(4):
+        for j in range(4):
+            for k in range(4):
+                result[i][j] += matrix1.data[i][k] * matrix2.data[k][j]
+
+    return Mat4x4(result)
+
 
 def is_rgb(color):
     if not isinstance(color, tuple):
@@ -347,6 +362,12 @@ def multiplyColor(color, k):
     return (int(clamp(color[0] * k)), int(clamp(color[1] * k)), int(clamp(color[2] * k)))
 
 
+def translate_camera(camera, dx, dy, dz):
+    camera.position.x += dx
+    camera.position.y += dy
+    camera.position.z += dz
+
+
 def GenerateSphere(divs, color):
     vertices = []
     triangles = []
@@ -385,6 +406,12 @@ def putPixel(x, y, color, canvas):
     if is_rgb(color):
         color = rgb_to_hex(color[0], color[1], color[2])
     canvas.create_rectangle(x, y, x + 1, y + 1, outline=color)
+
+
+def drawCachedPixels(pixelcache):
+    for i in range(0, len(pixelcache)):
+        putPixel(pixelcache[i].x, pixelcache[i].y, pixelcache[i].color, pixelcache[i].canvas)
+    pixelcache.clear()
 
 
 def drawLine(p0, p1, color, canvas):
@@ -549,8 +576,6 @@ def UpdateDepthBufferIfCloser(canvas, depth_buffer, x, y, inv_z):
     return False
 
 
-
-
 # ======================================================================
 #    Render Types
 # ======================================================================
@@ -572,8 +597,10 @@ def renderTriangle(triangle, projected, canvas):
     # drawWireframeTriangle(p0,p1,p2,triangle.color,canvas)
     drawFilledTriangle(p0, p1, p2, triangle.color, canvas)
 
+
 # Flat Shading
-def renderTriangleDepthF(triangle, vertices, projected, depth_buffer, camera, lights, orientation, canvas):
+def renderTriangleDepthF(triangle, vertices, projected, depth_buffer, camera, lights, orientation, canvas,
+                         cachedpixels):
     # Sort by projected point Y.
     indexes = SortedVertexIndexes(triangle.indexes, projected)
     i0, i1, i2 = indexes[0], indexes[1], indexes[2]
@@ -627,11 +654,14 @@ def renderTriangleDepthF(triangle, vertices, projected, depth_buffer, camera, li
             inv_z = zscan[x - xl]
             if (UpdateDepthBufferIfCloser(canvas, depth_buffer, x, y, inv_z)):
                 pixelcolor = multiplyColor(triangle.color, intensity)
-                putPixel(x, y, pixelcolor, canvas)
+                newpixel = Pixelcache(x, y, pixelcolor, canvas)
+                cachedpixels.append(newpixel)
+    drawCachedPixels(cachedpixels)
 
 
 # Gouraud Shading
-def renderTriangleDepthG(triangle, vertices, projected, depth_buffer, camera, lights, orientation, canvas):
+def renderTriangleDepthG(triangle, vertices, projected, depth_buffer, camera, lights, orientation, canvas,
+                         cachedpixels):
     # Sort by projected point Y.
     indexes = SortedVertexIndexes(triangle.indexes, projected)
     i0, i1, i2 = indexes[0], indexes[1], indexes[2]
@@ -703,11 +733,14 @@ def renderTriangleDepthG(triangle, vertices, projected, depth_buffer, camera, li
             if UpdateDepthBufferIfCloser(canvas, depth_buffer, x, y, inv_z):
                 intensity = iscan[x - xl];
                 pixelcolor = multiplyColor(triangle.color, intensity)
-                putPixel(x, y, pixelcolor, canvas)
+                newpixel = Pixelcache(x, y, pixelcolor, canvas)
+                cachedpixels.append(newpixel)
+    drawCachedPixels(cachedpixels)
 
 
 # Phong Shading
-def renderTriangleDepthP(triangle, vertices, projected, depth_buffer, camera, lights, orientation, canvas):
+def renderTriangleDepthP(triangle, vertices, projected, depth_buffer, camera, lights, orientation, canvas,
+                         cachedpixels):
     # Sort by projected point Y.
     indexes = SortedVertexIndexes(triangle.indexes, projected)
     i0, i1, i2 = indexes[0], indexes[1], indexes[2]
@@ -796,13 +829,16 @@ def renderTriangleDepthP(triangle, vertices, projected, depth_buffer, camera, li
                 intensity = ComputeIllumination(vertex, normal, camera, lights)
 
                 pixelcolor = multiplyColor(triangle.color, intensity)
-                putPixel(x, y, pixelcolor, canvas)
+                newpixel = Pixelcache(x, y, pixelcolor, canvas)
+                cachedpixels.append(newpixel)
+    drawCachedPixels(cachedpixels)
+
 
 # ======================================================================
 #    Rendering
 # ======================================================================
 
-def RenderScene(camera, instances, depth_buffer, lights, canvas):
+def RenderScene(camera, instances, depth_buffer, lights, canvas, cachedpixels):
     cameraMatrix = MultiplyMM4(Transposed(camera.orientation), MakeTranslationMatrix(Multiply(-1, camera.position)))
 
     for i in range(0, len(instances)):
@@ -810,24 +846,24 @@ def RenderScene(camera, instances, depth_buffer, lights, canvas):
         clipped = TransformAndClip(camera.clipping_planes, instances[i].model, instances[i].scale, transform)
         if (clipped != None):
             RenderModel(clipped, depth_buffer, camera, lights, instances[i].orientation, canvas,
-                        instances[i].rendertype)
+                        instances[i].rendertype, cachedpixels)
 
 
-def RenderModel(model, depth_buffer, camera, lights, orientation, canvas, rendertype):
+def RenderModel(model, depth_buffer, camera, lights, orientation, canvas, rendertype, cachedpixels):
     projected = []
     for i in range(0, len(model.vertices)):
         projected.append(projectVertex(Vertex4(model.vertices[i]), canvas))
     for i in range(0, len(model.triangles)):
         if rendertype == "Phong":
             renderTriangleDepthP(model.triangles[i], model.vertices, projected, depth_buffer, camera, lights,
-                                 orientation, canvas)
+                                 orientation, canvas, cachedpixels)
         if rendertype == "Gouraud":
             renderTriangleDepthG(model.triangles[i], model.vertices, projected, depth_buffer, camera, lights,
-                                 orientation, canvas)
-
+                                 orientation, canvas, cachedpixels)
         if rendertype == "Flat":
             renderTriangleDepthF(model.triangles[i], model.vertices, projected, depth_buffer, camera, lights,
-                                 orientation, canvas)
+                                 orientation, canvas, cachedpixels)
+
 
 # ======================================================================
 #    Clipping
@@ -882,6 +918,9 @@ def TransformAndClip(clipping_planes, model, scale, transform):
 
     return Model(vertices, triangles, center, model.bounds_radius)
 
+# ======================================================================
+#    Illumination
+# ======================================================================
 
 def ComputeIllumination(p, normal, camera, lights):
     # A Light.
@@ -925,5 +964,3 @@ def ComputeIllumination(p, normal, camera, lights):
             illumination += math.pow(cos_beta, specular) * light.intensity
 
     return illumination
-
-

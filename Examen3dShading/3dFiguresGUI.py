@@ -9,12 +9,14 @@ import objGfxLib as gf
 from math import floor
 from PIL import Image, ImageDraw, ImageTk
 
+# ======================================================================
+#    Starting Parameters
+# ======================================================================
 width = 551
 height = 551
-
 instances = []
+cachedpixels = []
 
-global camera
 camera = gf.Camera(gf.Vertex(0, 0, 0), gf.Identity4x4)
 
 s2 = math.sqrt(2)
@@ -27,14 +29,13 @@ camera.clipping_planes = [
 ]
 
 # A Light.
-LT_AMBIENT = 0;
-LT_POINT = 1;
-LT_DIRECTIONAL = 2;
+LT_AMBIENT = 0
+LT_POINT = 1
+LT_DIRECTIONAL = 2
 
 lights = [gf.Light(LT_AMBIENT, 0.2), gf.Light(LT_DIRECTIONAL, 0.2, gf.Vertex(-1, 0, 1)),
           gf.Light(LT_POINT, 0.6, gf.Vertex(0, 0, 0))]
 
-##############################################################################################
 # Define color constants
 BLUE = (10, 10, 255)
 RED = (255, 10, 10)
@@ -43,52 +44,9 @@ YELLOW = (238, 232, 170)
 PURPLE = (186, 85, 211)
 CYAN = (0, 255, 255)
 
-##############################################################################################
-
-# Define Pyramid
-# Definir el vértice superior
-vTp = gf.Vertex(0, 0.5, 0)
-
-# Definir los vértices inferiores
-vAp = gf.Vertex(-0.5, -0.5, -0.5)
-vBp = gf.Vertex(0.5, -0.5, -0.5)
-vCp = gf.Vertex(0.5, -0.5, 0.5)
-vDp = gf.Vertex(-0.5, -0.5, 0.5)
-
-# Agregar vértices a la lista
-pyrVertices = [vTp, vAp, vBp, vCp, vDp]
-
-# Definir triángulos
-pyrTriangles = [
-    (0, 1, 2, RED),
-    (0, 2, 3, RED),
-    (0, 3, 4, RED),
-    (0, 4, 1, YELLOW),
-    (1, 3, 4, YELLOW),
-    (1, 2, 3, CYAN)
-]
-
-normals = [
-    gf.calculate_normal(pyrVertices[0], pyrVertices[1], pyrVertices[2]),
-    gf.calculate_normal(pyrVertices[0], pyrVertices[2], pyrVertices[3]),
-    gf.calculate_normal(pyrVertices[0], pyrVertices[3], pyrVertices[4]),
-    gf.calculate_normal(pyrVertices[0], pyrVertices[4], pyrVertices[1]),
-    gf.calculate_normal(pyrVertices[1], pyrVertices[2], pyrVertices[3]),
-    gf.calculate_normal(pyrVertices[1], pyrVertices[3], pyrVertices[4])
-]
-
-# Crear los triángulos con sus normales y colores
-pyrTrianglesWithNormals = [
-    gf.Triangle([0, 1, 2], RED, [normals[0], normals[0], normals[0]]),
-    gf.Triangle([0, 2, 3], RED, [normals[1], normals[1], normals[1]]),
-    gf.Triangle([0, 3, 4], RED, [normals[2], normals[2], normals[2]]),
-    gf.Triangle([0, 4, 1], YELLOW, [normals[3], normals[3], normals[3]]),
-    gf.Triangle([1, 2, 3], YELLOW, [normals[4], normals[4], normals[4]]),
-    gf.Triangle([1, 3, 4], CYAN, [normals[5], normals[5], normals[5]])
-]
-
-# Definir el modelo de la pirámide
-pyramid = gf.Model(pyrVertices, pyrTrianglesWithNormals, gf.Vertex(0, 0, 0), math.sqrt(3))
+# ======================================================================
+#    Define Models - Cube
+# ======================================================================
 
 # Define Cube
 vertices = [
@@ -139,23 +97,32 @@ def clear_canvas():
     canvas.create_image(0, 0, anchor=NW, image=cv)
 
 
-def rerender(newcam):
+def rerendercam():
+    global depth_buffer
+    global camera
+    depth_buffer = np.zeros(image.size[0] * image.size[1])
+    clear_canvas()
+    gf.RenderScene(camera, instances, depth_buffer, lights, canvas, cachedpixels)
+
+
+def rerenderobj(newcam):
     global depth_buffer
     depth_buffer = np.zeros(image.size[0] * image.size[1])
     for instance in instances:
         instance.apply_camera_transform(newcam)
     clear_canvas()
-    gf.RenderScene(camera, instances, depth_buffer, lights, canvas)
+    gf.RenderScene(camera, instances, depth_buffer, lights, canvas, cachedpixels)
 
 
 def relight():
     lx, ly, lz = getlight()
     global depth_buffer
+    global lights
     depth_buffer = np.zeros(image.size[0] * image.size[1])
     clear_canvas()
-    newlight = [gf.Light(LT_AMBIENT, 0.2), gf.Light(LT_DIRECTIONAL, 0.2, gf.Vertex(-1, 0, 1)),
+    lights = [gf.Light(LT_AMBIENT, 0.2), gf.Light(LT_DIRECTIONAL, 0.2, gf.Vertex(-1, 0, 1)),
                 gf.Light(LT_POINT, 0.6, gf.Vertex(lx, ly, lz))]
-    gf.RenderScene(camera, instances, depth_buffer, newlight, canvas)
+    gf.RenderScene(camera, instances, depth_buffer, lights, canvas, cachedpixels)
 
 
 def getlight():
@@ -200,17 +167,12 @@ def on_enter(event):
             dddShape = gf.Instance(cube, gf.Vertex(ttx, tty, ttz), gf.MakeRotationMatrix(gf.Vertex(rtx, rty, rtz)),
                                    sca, rendtype)
             instances.append(dddShape)
-            gf.RenderScene(camera, instances, depth_buffer, lights, canvas)
-        elif shape == "Pyramid":
-            dddShape = gf.Instance(pyramid, gf.Vertex(ttx, tty, ttz), gf.MakeRotationMatrix(gf.Vertex(rtx, rty, rtz)),
-                                   sca, rendtype)
-            instances.append(dddShape)
-            gf.RenderScene(camera, instances, depth_buffer, lights, canvas)
+            gf.RenderScene(camera, instances, depth_buffer, lights, canvas, cachedpixels)
         elif shape == "Sphere":
             dddShape = gf.Instance(sphere, gf.Vertex(ttx, tty, ttz), gf.MakeRotationMatrix(gf.Vertex(rtx, rty, rtz)),
                                    sca, rendtype)
             instances.append(dddShape)
-            gf.RenderScene(camera, instances, depth_buffer, lights, canvas)
+            gf.RenderScene(camera, instances, depth_buffer, lights, canvas, cachedpixels)
 
 
 def on_test(event):
@@ -232,60 +194,109 @@ def on_test(event):
     if event.name == 'x':
         print("added cube")
         depth_buffer = np.zeros(image.size[0] * image.size[1])
-        shape = gf.Instance(cube, gf.Vertex(0, 0, 30), gf.Identity4x4, 1, "Flat")
+        shape = gf.Instance(cube, gf.Vertex(0, 0, 25), gf.Identity4x4, 1, "Flat")
         instances.append(shape)
-        gf.RenderScene(camera, instances, depth_buffer, lights, canvas)
-    if event.name == 'f':
+        gf.RenderScene(camera, instances, depth_buffer, lights, canvas, cachedpixels)
+    if event.name == 'm':
         print("Reload")
         clear_canvas()
         depth_buffer = np.zeros(image.size[0] * image.size[1])
-        gf.RenderScene(camera, instances, depth_buffer, lights, canvas)
-    if event.name == 'g':
+        gf.RenderScene(camera, instances, depth_buffer, lights, canvas, cachedpixels)
+    if event.name == 'n':
         print("Reload Lights")
         relight()
     if event.name == 'c':
         print("cleared all instances")
         print(gf.MakeRotationMatrix(gf.Vertex(0, (math.pi / 8), 0)).data)
         clear_canvas_instances()
+    if event.name == 'b':
+        gf.translate_camera(camera, 0, 0, 30)
+        camera.orientation = gf.dot_product(camera.orientation, gf.MakeRotationMatrix(gf.Vertex((-math.pi), 0 , (-math.pi))))
+        rerendercam()
 
 
 def on_arrow_key_pressed(event):
+    global camera
+    ## Camera movement controls
+    # Position
     if event.name == 'w':
-        cam = gf.Camera(gf.Vertex(0, 1, 0), gf.Identity4x4)
-        rerender(cam)
+        gf.translate_camera(camera, 0, 1, 0)
+        rerendercam()
     elif event.name == 's':
-        cam = gf.Camera(gf.Vertex(0, -1, 0), gf.Identity4x4)
-        rerender(cam)
+        gf.translate_camera(camera, 0, -1, 0)
+        rerendercam()
     elif event.name == 'a':
-        cam = gf.Camera(gf.Vertex(-1, 0, 0), gf.Identity4x4)
-        rerender(cam)
+        gf.translate_camera(camera, -1, 0, 0)
+        rerendercam()
     elif event.name == 'd':
+        gf.translate_camera(camera, 1, 0, 0)
+        rerendercam()
+    if event.name == 'q':
+        gf.translate_camera(camera, 0, 0, 1)
+        rerendercam()
+    elif event.name == 'e':
+        gf.translate_camera(camera, 0, 0, -1)
+        rerendercam()
+    # Orientation
+    elif event.name == 't':
+        camera.orientation = gf.dot_product(camera.orientation, gf.MakeRotationMatrix(gf.Vertex((-math.pi / 16), 0, 0)))
+        rerendercam()
+    elif event.name == 'g':
+        camera.orientation = gf.dot_product(camera.orientation, gf.MakeRotationMatrix(gf.Vertex((math.pi / 16), 0, 0)))
+        rerendercam()
+    elif event.name == 'f':
+        camera.orientation = gf.dot_product(camera.orientation, gf.MakeRotationMatrix(gf.Vertex(0, (-math.pi / 16), 0)))
+        rerendercam()
+    elif event.name == 'h':
+        camera.orientation = gf.dot_product(camera.orientation, gf.MakeRotationMatrix(gf.Vertex(0, (math.pi / 16), 0)))
+        rerendercam()
+    elif event.name == 'r':
+        camera.orientation = gf.dot_product(camera.orientation, gf.MakeRotationMatrix(gf.Vertex(0, 0, (-math.pi / 16))))
+        rerendercam()
+    elif event.name == 'y':
+        camera.orientation = gf.dot_product(camera.orientation, gf.MakeRotationMatrix(gf.Vertex(0, 0, (math.pi / 16))))
+        rerendercam()
+
+    ## Object movement controls
+    # Position
+    elif event.name == 'up':
+        cam = gf.Camera(gf.Vertex(0, -1, 0), gf.Identity4x4)
+        rerenderobj(cam)
+    elif event.name == 'down':
+        cam = gf.Camera(gf.Vertex(0, 1, 0), gf.Identity4x4)
+        rerenderobj(cam)
+    elif event.name == 'left':
         cam = gf.Camera(gf.Vertex(1, 0, 0), gf.Identity4x4)
-        rerender(cam)
+        rerenderobj(cam)
+    elif event.name == 'right':
+        cam = gf.Camera(gf.Vertex(-1, 0, 0), gf.Identity4x4)
+        rerenderobj(cam)
+    # Orientation
+    elif event.name == 'j':
+        cam = gf.Camera(gf.Vertex(0, 0, 0), gf.MakeRotationMatrix(gf.Vertex(0, (-math.pi / 8), 0)))
+        rerenderobj(cam)
+    elif event.name == 'l':
+        cam = gf.Camera(gf.Vertex(0, 0, 0), gf.MakeRotationMatrix(gf.Vertex(0, (math.pi / 8), 0)))
+        rerenderobj(cam)
+    elif event.name == 'i':
+        cam = gf.Camera(gf.Vertex(0, 0, 0), gf.MakeRotationMatrix(gf.Vertex((-math.pi / 8), 0, 0)))
+        rerenderobj(cam)
+    elif event.name == 'k':
+        cam = gf.Camera(gf.Vertex(0, 0, 0), gf.MakeRotationMatrix(gf.Vertex((math.pi / 8), 0, 0)))
+        rerenderobj(cam)
+    elif event.name == 'u':
+        cam = gf.Camera(gf.Vertex(0, 0, 0), gf.MakeRotationMatrix(gf.Vertex(0, 0, (math.pi / 8))))
+        rerenderobj(cam)
+    elif event.name == 'o':
+        cam = gf.Camera(gf.Vertex(0, 0, 0), gf.MakeRotationMatrix(gf.Vertex(0, 0, (-math.pi / 8))))
+        rerenderobj(cam)
+    # Scale
     elif event.name == ',':
         cam = gf.Camera(gf.Vertex(0, 0, -5), gf.Identity4x4)
-        rerender(cam)
+        rerenderobj(cam)
     elif event.name == '.':
         cam = gf.Camera(gf.Vertex(0, 0, 5), gf.Identity4x4)
-        rerender(cam)
-    elif event.name == 'j':
-        cam = gf.Camera(gf.Vertex(0, 0, 0), gf.MakeRotationMatrix(gf.Vertex(0, (math.pi / 8), 0)))
-        rerender(cam)
-    elif event.name == 'l':
-        cam = gf.Camera(gf.Vertex(0, 0, 0), gf.MakeRotationMatrix(gf.Vertex(0, (-math.pi / 8), 0)))
-        rerender(cam)
-    elif event.name == 'i':
-        cam = gf.Camera(gf.Vertex(0, 0, 0), gf.MakeRotationMatrix(gf.Vertex((math.pi / 8), 0, 0)))
-        rerender(cam)
-    elif event.name == 'k':
-        cam = gf.Camera(gf.Vertex(0, 0, 0), gf.MakeRotationMatrix(gf.Vertex((-math.pi / 8), 0, 0)))
-        rerender(cam)
-    elif event.name == 'u':
-        cam = gf.Camera(gf.Vertex(0, 0, 0), gf.MakeRotationMatrix(gf.Vertex(0, 0, (-math.pi / 8))))
-        rerender(cam)
-    elif event.name == 'o':
-        cam = gf.Camera(gf.Vertex(0, 0, 0), gf.MakeRotationMatrix(gf.Vertex(0, 0, (math.pi / 8))))
-        rerender(cam)
+        rerenderobj(cam)
 
 
 ##########################################
@@ -293,6 +304,9 @@ def on_arrow_key_pressed(event):
 
 root = tk.Tk()
 root.title("3D Shapes Manipulation")
+
+root.config()
+root.bind_all("<Button-1>", lambda event: event.widget.focus_set())
 
 # Create canvas
 image = Image.new('RGB', (width, height), (255, 255, 255))
@@ -319,7 +333,7 @@ selector_label.pack(side=tk.TOP, pady=2, padx=5)
 
 selector_var = tk.StringVar(frame_options)
 selector_var.set("Cube")
-selector_menu = tk.OptionMenu(frame_options, selector_var, "Cube", "Pyramid", "Sphere")
+selector_menu = tk.OptionMenu(frame_options, selector_var, "Cube", "Sphere")
 selector_menu.pack(side=tk.BOTTOM, fill=X, pady=5)
 
 # Translation
@@ -433,7 +447,7 @@ frame_info.pack()
 
 depth_buffer = np.zeros(image.size[0] * image.size[1])
 
-gf.RenderScene(camera, instances, depth_buffer, lights, image)
+gf.RenderScene(camera, instances, depth_buffer, lights, image, cachedpixels)
 
 keyboard.on_press(on_enter)
 keyboard.on_press(on_test)
